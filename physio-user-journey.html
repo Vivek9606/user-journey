@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Physio User Journey</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --canvas:#eef1f0;
+  --dot:#d3dad7;
+  --ink:#0f1f1a;
+  --ink-2:#4a5c55;
+  --ink-3:#83938c;
+  --card:#ffffff;
+  --line:#dbe3df;
+  --brand:#0e8a6a;
+  --brand-soft:#dff5ec;
+  --arrow:#9aa9a3;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --canvas:#0d1411;--dot:#1e2a25;--ink:#e8f1ed;--ink-2:#a9bbb3;--ink-3:#71847c;--card:#151f1b;--line:#26352f;
+    --brand:#2fd3a3;--brand-soft:#133429;--arrow:#4b5d56;
+  }
+}
+:root[data-theme="dark"]{
+  --canvas:#0d1411;--dot:#1e2a25;--ink:#e8f1ed;--ink-2:#a9bbb3;--ink-3:#71847c;--card:#151f1b;--line:#26352f;
+  --brand:#2fd3a3;--brand-soft:#133429;--arrow:#4b5d56;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background-color:var(--canvas);
+  background-image:radial-gradient(var(--dot) 1.2px,transparent 1.2px);
+  background-size:22px 22px;
+  color:var(--ink);font-family:"Plus Jakarta Sans",system-ui,sans-serif;line-height:1.5;
+  -webkit-font-smoothing:antialiased;padding:40px 32px 80px;
+}
+@media (max-width:600px){body{padding:24px 16px 60px}}
+
+.title{margin-bottom:36px}
+.title h1{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.title p{color:var(--ink-3);font-size:14px;margin-top:2px}
+
+/* stage row */
+.stage{margin-bottom:56px}
+.stage-label{display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:15px;margin-bottom:18px;padding:8px 14px 8px 8px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+.stage-label span{width:26px;height:26px;border-radius:8px;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:12px}
+.flow{display:flex;flex-wrap:wrap;align-items:flex-start;gap:20px 0}
+
+.step{display:flex;align-items:flex-start;gap:14px}
+.arrow{align-self:center;width:56px;height:2px;background:var(--arrow);position:relative;margin:0 14px}
+.arrow::after{content:"";position:absolute;right:-1px;top:-5px;border:6px solid transparent;border-left:8px solid var(--arrow);border-right:0}
+@media (max-width:760px){
+  .flow{flex-direction:column;align-items:stretch}
+  .step{flex-direction:column;align-items:center}
+  .arrow{width:2px;height:36px;margin:14px auto}
+  .arrow::after{right:-5px;top:auto;bottom:-1px;border:6px solid transparent;border-top:8px solid var(--arrow);border-bottom:0}
+}
+
+/* notes */
+.notes{width:230px;padding-top:6px}
+@media (max-width:760px){.notes{width:100%;max-width:320px}}
+.notes h3{font-size:15px;font-weight:800;letter-spacing:-.01em;margin-bottom:10px}
+.n{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;font-size:12.5px;color:var(--ink-2)}
+.n b{display:block;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:3px}
+.n ul{padding-left:16px}
+.n li{margin:2px 0}
+.n.next{background:var(--brand-soft);border-color:transparent;color:var(--brand);font-weight:600}
+.n.next b{color:var(--brand);opacity:.8}
+
+/* phone */
+.phone{width:236px;flex:none;background:#0f1f1a;border-radius:38px;padding:9px;box-shadow:0 24px 48px -18px rgba(15,31,26,.35)}
+.screen{background:#fbfdfc;border-radius:30px;height:480px;overflow:hidden;position:relative;color:#0f1f1a;font-size:11px}
+.notch{position:absolute;top:7px;left:50%;transform:translateX(-50%);width:74px;height:20px;background:#000;border-radius:12px;z-index:3}
+.sb{display:flex;justify-content:space-between;padding:10px 20px 0;font-weight:700;font-size:10px;height:34px}
+.scr{padding:6px 14px 14px}
+.scr h6{font-size:15px;font-weight:800;letter-spacing:-.02em;margin:6px 0 4px;line-height:1.25}
+.muted{color:#6b7c75;font-size:10.5px}
+.c{background:#fff;border:1px solid #e4ece8;border-radius:12px;padding:10px;margin-top:9px}
+.btn{display:block;text-align:center;background:#0e8a6a;color:#fff;font-weight:700;border-radius:11px;padding:10px;margin-top:10px;font-size:11.5px}
+.btn.g{background:#eef3f1;color:#0f1f1a}
+.in{border:1.5px solid #dbe5e0;border-radius:10px;padding:9px 10px;margin-top:7px;color:#44564f;background:#fff}
+.ta{border:1.5px solid #dbe5e0;border-radius:10px;padding:9px 10px;margin-top:7px;color:#44564f;background:#fff;min-height:74px;line-height:1.45}
+.otp{display:flex;gap:6px;margin-top:9px}
+.otp span{flex:1;height:38px;border:1.5px solid #dbe5e0;border-radius:9px;display:grid;place-items:center;font-weight:800;font-size:14px;background:#fff}
+.otp span.f{border-color:#0e8a6a;background:#eafaf4}
+.bar{height:7px;background:#e7eeeb;border-radius:7px;overflow:hidden;margin:7px 0 4px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#0e8a6a,#14b88c)}
+.row{display:flex;align-items:center;gap:9px}
+.sp{justify-content:space-between}
+.av{width:34px;height:34px;border-radius:11px;background:linear-gradient(135deg,#0e8a6a,#6c5ce7);flex:none;color:#fff;display:grid;place-items:center;font-weight:800;font-size:11px}
+.bd{font-size:9.5px;font-weight:700;padding:3px 7px;border-radius:999px;white-space:nowrap}
+.ok{background:#dff5ec;color:#0e8a6a}.wt{background:#fff4d1;color:#9a6c00}.no{background:#fde4e4;color:#c03535}.vi{background:#ece9ff;color:#5a49d6}.gr{background:#eef3f1;color:#6b7c75}
+.ck{display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px dashed #e4ece8;font-size:10.5px}
+.ck:last-child{border:0}
+.ck i{width:15px;height:15px;border-radius:50%;flex:none;display:grid;place-items:center;font-style:normal;font-size:8px;color:#fff;background:#0e8a6a}
+.ck i.o{background:#fff;border:1.5px solid #c8d4cf}
+.ck i.w{background:#e0a100}
+.miss{color:#c05a2a;font-weight:600}
+.wa{background:#e5ddd5;height:100%;padding:12px}
+.wah{background:#075e54;color:#fff;margin:-12px -12px 12px;padding:40px 12px 10px;font-weight:700;font-size:11.5px}
+.bub{background:#fff;border-radius:10px 10px 10px 2px;padding:9px;max-width:94%;box-shadow:0 1px 1px rgba(0,0,0,.08);font-size:10.5px;margin-bottom:8px}
+.bub.me{margin-left:auto;border-radius:10px 10px 2px 10px;background:#dcf8c6;max-width:70%}
+.lp{background:#f0f4f2;border-radius:7px;padding:7px;margin:6px 0;border-left:3px solid #0e8a6a}
+.tab{position:absolute;bottom:0;left:0;right:0;height:52px;background:#fff;border-top:1px solid #e4ece8;display:flex;justify-content:space-around;align-items:center;font-size:9px;color:#7a8b84;font-weight:600}
+.tab span{text-align:center}.tab .on{color:#0e8a6a}
+.tab b{display:block;font-size:14px;font-weight:400}
+.srch{background:#eef3f1;border-radius:10px;padding:8px 10px;color:#7a8b84;margin-top:7px}
+.fl{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+.fl span{font-size:9.5px;font-weight:700;padding:4px 8px;border-radius:999px;background:#eef3f1}
+.fl span.on{background:#0f1f1a;color:#fff}
+.hero-img{height:110px;border-radius:14px;background:linear-gradient(135deg,#dff5ec,#ece9ff);display:grid;place-items:center;font-size:42px;margin-top:6px}
+.art{height:70px;border-radius:11px;background:linear-gradient(135deg,#ffe9df,#ece9ff);margin-top:8px;display:grid;place-items:center;font-size:26px}
+.acts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-top:10px}
+.acts span{text-align:center;padding:8px 3px;border-radius:9px;font-weight:700;font-size:10px}
+.a1{background:#0e8a6a;color:#fff}.a2{background:#fff4d1;color:#7a5600}.a3{background:#fde4e4;color:#c03535}
+.warn{background:#fff4d1;color:#7a5600;border-radius:9px;padding:7px 9px;margin-top:9px;font-size:9.5px;font-weight:600}
+.lock{background:#f3f6f5;border:1px dashed #c8d4cf;border-radius:12px;padding:10px;margin-top:9px;color:#7a8b84}
+.feat{display:flex;gap:9px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #eef3f1}
+.feat:last-child{border:0}
+.feat.sm{padding:6px 0;gap:8px;line-height:1.3}
+.feat.sm .ic{width:24px;height:24px;border-radius:7px;font-size:11px}
+.feat .ic{width:28px;height:28px;border-radius:9px;background:#dff5ec;display:grid;place-items:center;flex:none;font-size:13px}
+.dots{display:flex;gap:5px;justify-content:center;margin-top:10px}
+.dots i{width:6px;height:6px;border-radius:50%;background:#d3dad7}.dots i.on{width:18px;border-radius:6px;background:#0e8a6a}
+.lockscreen{background:linear-gradient(160deg,#1d3b33,#0f1f1a 60%,#2a2050);height:100%;color:#fff;padding:48px 12px 12px}
+.clock{text-align:center;font-size:46px;font-weight:300;letter-spacing:-.02em}
+.date{text-align:center;font-size:11px;opacity:.75;margin-bottom:22px}
+.push{background:rgba(255,255,255,.92);color:#0f1f1a;border-radius:15px;padding:10px;margin-bottom:8px;display:flex;gap:9px;font-size:10.5px}
+.push .ic{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#0e8a6a,#14b88c);color:#fff;display:grid;place-items:center;font-weight:800;flex:none}
+.push small{color:#6b7c75}
+.web{background:#fff;height:100%}
+.urlbar{margin:38px 10px 0;background:#eef3f1;border-radius:9px;padding:6px 10px;font-size:9.5px;color:#6b7c75;text-align:center}
+.webhead{padding:10px 14px;border-bottom:1px solid #eef3f1;font-weight:800;font-size:12px;color:#0e8a6a}
+
+.theme-btn{position:fixed;top:16px;right:16px;border:1px solid var(--line);background:var(--card);color:var(--ink);width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:15px}
+</style>
+</head>
+<body>
+<button class="theme-btn" id="themeBtn" aria-label="Toggle colour theme">◐</button>
+
+<div class="title">
+  <h1>Betterhood Physio App · Physiotherapist user journey</h1>
+  <p>MVP flow, from the WhatsApp invite to a published article</p>
+</div>
+
+<!-- ============ 1. INVITE & ONBOARDING ============ -->
+<div class="stage">
+  <div class="stage-label"><span>1</span>Invite and onboarding</div>
+  <div class="flow">
+
+    <div class="step">
+      <div class="phone"><div class="screen"><div class="wa">
+        <div class="wah">← Betterhood Physio Community<br><span style="font-weight:500;opacity:.8;font-size:9.5px">4,982 members</span></div>
+        <div class="bub"><b style="color:#0e8a6a">Betterhood Team</b><br>Hi Dr. Priya 👋 Our community is moving to its own app. Get verified, get listed on betterhood.in and get credited for your clinical expertise.
+          <div class="lp"><b>Join Betterhood Physio</b><br><span style="color:#6b7c75">betterhood.in/join/ps-48k2</span></div>
+          <span style="color:#0b7bd6;font-weight:600">betterhood.in/join/ps-48k2</span>
+        </div>
+        <div class="bub me">Downloading now 🙌</div>
+      </div></div></div>
+      <div class="notes">
+        <h3>WhatsApp invite</h3>
+        <div class="n"><b>Physio</b>Gets a personalised link in the community group or a 1:1 message, then taps it.</div>
+        <div class="n"><b>System</b><ul><li>Unique invite token mapped to the phone number</li><li>Deep link opens the store, or the app if already installed</li></ul></div>
+        <div class="n next"><b>Next</b>Install the app and open it</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <div class="hero-img">🩺</div>
+          <h6>Welcome to Betterhood Physio</h6>
+          <p class="muted">Your professional home, beyond WhatsApp.</p>
+          <div class="c" style="padding:4px 10px">
+            <div class="feat"><div class="ic">🛡️</div><div><b>Get verified</b><br><span class="muted">Earn a verified badge</span></div></div>
+            <div class="feat"><div class="ic">📍</div><div><b>Get listed</b><br><span class="muted">Public profile on betterhood.in</span></div></div>
+            <div class="feat"><div class="ic">✍️</div><div><b>Review and author</b><br><span class="muted">Your name on clinical articles</span></div></div>
+          </div>
+          <div class="btn">Get started</div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Welcome</h3>
+        <div class="n"><b>Physio</b>Sees what the app gives them before being asked for anything.</div>
+        <div class="n"><b>Shown</b><ul><li>Verification</li><li>Directory listing</li><li>Blog review and authorship</li></ul></div>
+        <div class="n next"><b>Next</b>See all the benefits</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <h6>Why join?</h6>
+          <p class="muted">Everything you get as a Betterhood physio</p>
+          <div class="c" style="padding:2px 10px">
+            <div class="feat sm"><div class="ic">🛡️</div><div><b>Verified badge</b><br><span class="muted">Credibility patients and peers trust</span></div></div>
+            <div class="feat sm"><div class="ic">🔎</div><div><b>Found on Google</b><br><span class="muted">Your own page on betterhood.in</span></div></div>
+            <div class="feat sm"><div class="ic">✍️</div><div><b>Your name on articles</b><br><span class="muted">Byline as a clinical reviewer or author</span></div></div>
+            <div class="feat sm"><div class="ic">📚</div><div><b>1,000+ MSK articles</b><br><span class="muted">Ready to share with your patients</span></div></div>
+            <div class="feat sm"><div class="ic">🧰</div><div><b>Free patient tools</b><br><span class="muted">Pain assessments, Slouch Catcher</span></div></div>
+            <div class="feat sm"><div class="ic">🎓</div><div><b>Learning</b><br><span class="muted">PhysioEdge course and resources</span></div></div>
+            <div class="feat sm"><div class="ic">🤝</div><div><b>Peer network</b><br><span class="muted">Find and refer verified physios</span></div></div>
+          </div>
+          <div class="btn">Join now, it's free</div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Why join?</h3>
+        <div class="n"><b>Visibility</b><ul><li>Verified badge</li><li>Public profile that patients can find on Google</li><li>Listed in a trusted directory</li></ul></div>
+        <div class="n"><b>Credibility</b><ul><li>Byline on Betterhood articles</li><li>Patient questions they raise turned into published content</li></ul></div>
+        <div class="n"><b>Practice support</b><ul><li>1,000+ MSK articles to share</li><li>Pain assessments, Slouch Catcher</li><li>PhysioEdge course</li><li>Peer network for referrals</li></ul></div>
+        <div class="n"><b>Coming later</b><ul><li>Case discussions</li><li>CPD learning</li><li>Events</li><li>Professional pricing</li><li>Referral earnings</li></ul></div>
+        <div class="n next"><b>Next</b>Register with their phone number</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ 2. REGISTER ============ -->
+<div class="stage">
+  <div class="stage-label"><span>2</span>Registration and account linking</div>
+  <div class="flow">
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <span class="bd vi">Step 1 of 3</span>
+          <h6>Enter your phone number</h6>
+          <p class="muted">Use the number you use for the WhatsApp community.</p>
+          <div class="in">🇮🇳 +91 98xxx x4821</div>
+          <h6 style="font-size:12.5px;margin-top:16px">Enter the 6-digit code</h6>
+          <div class="otp"><span class="f">4</span><span class="f">8</span><span class="f">2</span><span class="f">1</span><span>_</span><span>_</span></div>
+          <p class="muted" style="margin-top:7px">Resend code in 0:24</p>
+          <div class="c" style="font-size:10px;color:#6b7c75">☑ I agree to the Terms and Privacy Policy and consent to Betterhood processing my professional details.</div>
+          <div class="btn">Verify</div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Phone OTP</h3>
+        <div class="n"><b>Physio</b>Number is prefilled from the invite. They enter the OTP and accept consent.</div>
+        <div class="n"><b>System</b><ul><li>OTP sent and verified</li><li>Consent recorded (DPDP Act)</li><li>One phone number per account</li></ul></div>
+        <div class="n next"><b>Next</b>Check for an existing Betterhood account</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <span class="bd vi">Step 2 of 3</span>
+          <h6>Is this you?</h6>
+          <p class="muted">We found a betterhood.in listing with this number.</p>
+          <div class="c" style="background:#eafaf4;border-color:#bfe8d6">
+            <div class="row"><div class="av">PS</div><div><b>Dr. Priya Sharma</b><br><span class="muted">MPT · Kothrud, Pune</span></div></div>
+            <div class="ck" style="margin-top:6px"><i>✓</i>Name and qualification</div>
+            <div class="ck"><i>✓</i>Clinic address</div>
+            <div class="ck"><i>✓</i>Specialities</div>
+          </div>
+          <p class="muted" style="margin-top:8px">These details will be copied into your profile.</p>
+          <div class="btn">Yes, link my account</div>
+          <div class="btn g">This isn't me</div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Link existing account</h3>
+        <div class="n"><b>Physio</b>Confirms the matched directory listing or WordPress account.</div>
+        <div class="n"><b>System</b><ul><li>Match by phone, then email</li><li>Existing data prefilled</li><li>Duplicates prevented</li></ul></div>
+        <div class="n"><b>If no match</b>A new account is created</div>
+        <div class="n next"><b>Next</b>Submit credentials</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ 3. VERIFY ============ -->
+<div class="stage">
+  <div class="stage-label"><span>3</span>Verification</div>
+  <div class="flow">
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <span class="bd vi">Step 3 of 3</span>
+          <h6>Verify your credentials</h6>
+          <p class="muted">Upload any one document.</p>
+          <div class="c">
+            <div class="row sp"><b>IAP membership</b><span class="bd ok">Uploaded</span></div>
+            <p class="muted" style="margin-top:3px">iap_card_2026.pdf · 412 KB</p>
+          </div>
+          <div class="c">
+            <div class="row sp"><b>State council registration</b><span class="bd gr">Optional</span></div>
+            <div class="in" style="text-align:center;border-style:dashed">＋ Add document</div>
+          </div>
+          <div class="in">Registration no. · MH/PT/2017/xxxx</div>
+          <p class="muted" style="margin-top:9px">🔒 Only the Betterhood verification team can see your documents.</p>
+          <div class="btn">Submit for verification</div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Upload documents</h3>
+        <div class="n"><b>Physio</b>Uploads IAP membership proof or state council registration.</div>
+        <div class="n"><b>System</b><ul><li>Stored privately, never publicly exposed</li><li>Added to the admin queue in WordPress</li></ul></div>
+        <div class="n next"><b>Status</b>Pending</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <h6>Home</h6>
+          <div class="c" style="background:#fff8e1;border-color:#f3e1a6">
+            <div class="row sp"><b>Verification</b><span class="bd wt">Pending</span></div>
+            <p class="muted" style="margin-top:3px">Usually reviewed within 48 hours. We'll notify you.</p>
+          </div>
+          <div class="c">
+            <div class="row sp"><b>Complete your profile</b><b style="color:#0e8a6a">45%</b></div>
+            <div class="bar"><i style="width:45%"></i></div>
+            <div class="btn" style="margin-top:6px">Continue</div>
+          </div>
+          <div class="lock">🔒 <b>Blog reviews</b><br>Unlocks after verification and profile completion.</div>
+        </div>
+        <div class="tab"><span class="on"><b>⌂</b>Home</span><span><b>⌕</b>Directory</span><span><b>✎</b>Blogs</span><span><b>◉</b>Profile</span></div>
+      </div></div>
+      <div class="notes">
+        <h3>Pending, not blocked</h3>
+        <div class="n"><b>Physio</b>Can keep building their profile and browse the directory while the review is pending.</div>
+        <div class="n"><b>Admin (WordPress)</b>Reviews the documents and marks them Verified or Rejected with a reason.</div>
+        <div class="n next"><b>Next</b>Push notification with the decision</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen"><div class="lockscreen">
+        <div class="clock">10:12</div><div class="date">Tuesday, 13 October</div>
+        <div class="push"><div class="ic">B</div><div><b>You're verified ✓</b> <small>· now</small><br>Your verified badge is live. Finish your profile to get listed on betterhood.in.</div></div>
+        <div class="push" style="opacity:.6"><div class="ic" style="background:#d64545">B</div><div><b>Verification needs attention</b><br><small>Rejected case: “Document unclear, please re-upload.”</small></div></div>
+      </div></div></div>
+      <div class="notes">
+        <h3>Decision notification</h3>
+        <div class="n"><b>Verified</b>Badge shown in the app and on the directory profile</div>
+        <div class="n"><b>Rejected</b>Reason shown, with a link back to re-upload</div>
+        <div class="n next"><b>Next</b>Complete the profile</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ 4. PROFILE ============ -->
+<div class="stage">
+  <div class="stage-label"><span>4</span>Profile completion</div>
+  <div class="flow">
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <div class="row"><div class="av" style="width:44px;height:44px;font-size:14px">PS</div><div><b style="font-size:13px">Dr. Priya Sharma</b><br><span class="bd ok">✓ Verified</span></div></div>
+          <div class="c">
+            <div class="row sp"><b>Profile strength</b><b style="color:#0e8a6a">70%</b></div>
+            <div class="bar"><i style="width:70%"></i></div>
+            <p class="muted">3 more to get listed on betterhood.in</p>
+          </div>
+          <div class="c">
+            <div class="ck"><i>✓</i>Photo, name and qualifications</div>
+            <div class="ck"><i>✓</i>Specialities · Sports, Spine</div>
+            <div class="ck"><i>✓</i>Clinic · Kothrud, Pune</div>
+            <div class="ck"><i>✓</i>City and locality</div>
+            <div class="ck"><i class="o"></i><span class="miss">Working hours</span></div>
+            <div class="ck"><i class="o"></i><span class="miss">Professional bio</span></div>
+            <div class="ck"><i class="o"></i><span class="miss">Registration details</span></div>
+          </div>
+          <div class="btn">Add working hours →</div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Complete the profile</h3>
+        <div class="n"><b>Physio</b>Fills in only the missing fields. Everything else is prefilled.</div>
+        <div class="n"><b>Fields</b><ul><li>Photo, name, qualifications</li><li>Registration details</li><li>Specialities</li><li>Clinic, city, locality</li><li>Working hours</li><li>Bio</li></ul></div>
+        <div class="n next"><b>Next</b>Reminders if left incomplete</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen"><div class="lockscreen">
+        <div class="clock">18:30</div><div class="date">Day 1 · 3 · 7</div>
+        <div class="push"><div class="ic">B</div><div><b>Day 1 · You're 70% there</b><br>Add your working hours so patients know when to visit.</div></div>
+        <div class="push"><div class="ic">B</div><div><b>Day 3 · One step to go live</b><br>Add a short bio to publish your profile.</div></div>
+        <div class="push"><div class="ic">B</div><div><b>Day 7 · Your listing is waiting</b><br>Verified physios near you are already listed.</div></div>
+      </div></div></div>
+      <div class="notes">
+        <h3>Reminders</h3>
+        <div class="n"><b>When</b>Day 1, 3 and 7 after registration</div>
+        <div class="n"><b>Channel</b>Push first, WhatsApp as the fallback</div>
+        <div class="n"><b>Rule</b>Stop as soon as the profile is complete</div>
+        <div class="n next"><b>Next</b>Profile published</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ 5. DIRECTORY ============ -->
+<div class="stage">
+  <div class="stage-label"><span>5</span>Directory listing</div>
+  <div class="flow">
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="web">
+          <div class="urlbar">🔒 betterhood.in/physio/priya-sharma-pune</div>
+          <div class="webhead">betterhood</div>
+          <div class="scr">
+            <div class="row"><div class="av" style="width:52px;height:52px;font-size:16px;border-radius:16px">PS</div><div><b style="font-size:14px">Dr. Priya Sharma</b><br><span class="muted">MPT (Sports) · 8 yrs</span><br><span class="bd ok">✓ Verified by Betterhood</span></div></div>
+            <div class="c"><b>Specialities</b><div class="fl"><span>Sports injuries</span><span>Spine</span><span>Post-op rehab</span></div></div>
+            <div class="c"><b>Clinic</b><br><span class="muted">MoveWell Physio, Kothrud, Pune<br>Mon–Sat · 9 am – 7 pm</span></div>
+            <div class="c"><b>About</b><br><span class="muted">I help athletes and desk workers return to pain-free movement…</span></div>
+            <div class="c"><b>Articles reviewed</b><br><span class="muted">Lower back pain at desk jobs →</span></div>
+          </div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Public profile goes live</h3>
+        <div class="n"><b>Condition</b>Verified and profile complete</div>
+        <div class="n"><b>System</b><ul><li>WordPress publishes the profile page</li><li>Indexed by search engines</li><li>Links to the articles they reviewed</li></ul></div>
+        <div class="n"><b>Physio</b>Gets a “You're live” push and shares the link with patients</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <h6>Directory</h6>
+          <div class="srch">⌕ Search physios, specialities…</div>
+          <div class="fl"><span class="on">Pune</span><span>Kothrud</span><span class="on">Sports</span><span>✓ Verified</span></div>
+          <div class="c"><div class="row"><div class="av">PS</div><div style="flex:1"><div class="row sp"><b>Dr. Priya Sharma</b><span class="bd ok">✓</span></div><span class="muted">MPT Sports · Kothrud</span></div></div></div>
+          <div class="c"><div class="row"><div class="av" style="background:linear-gradient(135deg,#ff7a45,#e0a100)">AK</div><div style="flex:1"><div class="row sp"><b>Dr. Arjun Kulkarni</b><span class="bd ok">✓</span></div><span class="muted">BPT · Knee · Baner</span></div></div></div>
+          <div class="c"><div class="row"><div class="av" style="background:linear-gradient(135deg,#2f7de1,#6c5ce7)">NM</div><div style="flex:1"><div class="row sp"><b>Dr. Neha Mehta</b><span class="bd wt">Pending</span></div><span class="muted">MPT Ortho · Aundh</span></div></div></div>
+        </div>
+        <div class="tab"><span><b>⌂</b>Home</span><span class="on"><b>⌕</b>Directory</span><span><b>✎</b>Blogs</span><span><b>◉</b>Profile</span></div>
+      </div></div>
+      <div class="notes">
+        <h3>In-app directory</h3>
+        <div class="n"><b>Physio</b>Searches and views peers' profiles</div>
+        <div class="n"><b>Filters</b><ul><li>City</li><li>Locality</li><li>Speciality</li><li>Verification status</li></ul></div>
+        <div class="n next"><b>Unlocked</b>Blog reviews (verified and complete)</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ 6. BLOG REVIEW ============ -->
+<div class="stage">
+  <div class="stage-label"><span>6</span>Blog review and author approval</div>
+  <div class="flow">
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <h6>Assigned to you</h6>
+          <div class="fl"><span class="on">To review · 2</span><span>Revisions · 1</span><span>Published · 3</span></div>
+          <div class="c"><div class="row sp"><span class="bd vi">New</span><span class="muted">Due in 5 days</span></div><b style="display:block;margin-top:5px">Lower back pain at desk jobs: 7 evidence-based fixes</b><span class="muted">Spine · 6 min read</span></div>
+          <div class="c"><div class="row sp"><span class="bd vi">New</span><span class="muted">Due in 9 days</span></div><b style="display:block;margin-top:5px">ACL rehab: the first 6 weeks</b><span class="muted">Sports · 8 min read</span></div>
+          <div class="c"><div class="row sp"><span class="bd wt">Revised by editor</span><span class="muted">Re-review</span></div><b style="display:block;margin-top:5px">Frozen shoulder: what actually helps</b></div>
+        </div>
+        <div class="tab"><span><b>⌂</b>Home</span><span><b>⌕</b>Directory</span><span class="on"><b>✎</b>Blogs</span><span><b>◉</b>Profile</span></div>
+      </div></div>
+      <div class="notes">
+        <h3>Assigned articles</h3>
+        <div class="n"><b>Content team</b>Assigns existing blogs in WordPress based on the physio's speciality</div>
+        <div class="n"><b>Physio</b>Gets a push: “New article to review” and opens it</div>
+        <div class="n next"><b>Next</b>Read and review</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <span class="muted">← Back</span>
+          <h6 style="font-size:13.5px">Lower back pain at desk jobs: 7 evidence-based fixes</h6>
+          <div class="art">🧍‍♀️</div>
+          <p class="muted" style="margin-top:7px;line-height:1.5">Prolonged sitting increases lumbar disc loading. Micro-breaks every 30 minutes, combined with hip-flexor mobility…</p>
+          <div class="c" style="padding:9px"><b style="font-size:10px">Note to editor</b><p class="muted" style="margin-top:3px">“Point 4: McKenzie extension isn't suitable for every patient. Please add a caveat.”</p></div>
+          <div class="warn">Approving authorises publication under your name and credentials.</div>
+          <div class="acts"><span class="a1">Approve</span><span class="a2">Revise</span><span class="a3">Reject</span></div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Review the article</h3>
+        <div class="n"><b>Physio options</b><ul><li><b style="display:inline;text-transform:none;letter-spacing:0;font-size:12.5px;color:var(--ink)">Approve</b>, to publish under their name</li><li><b style="display:inline;text-transform:none;letter-spacing:0;font-size:12.5px;color:var(--ink)">Revise</b>, sending notes to the editor</li><li><b style="display:inline;text-transform:none;letter-spacing:0;font-size:12.5px;color:var(--ink)">Reject</b>, if they can't endorse it</li></ul></div>
+        <div class="n"><b>Revision loop</b>Editor updates the article and sends it back for re-review</div>
+        <div class="n"><b>System</b>Approval is saved against this exact version</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="web">
+          <div class="urlbar">🔒 betterhood.in/blog/lower-back-pain-desk-jobs</div>
+          <div class="webhead">betterhood</div>
+          <div class="scr">
+            <h6 style="font-size:14px">Lower back pain at desk jobs: 7 evidence-based fixes</h6>
+            <div class="c" style="background:#eafaf4;border-color:#bfe8d6"><div class="row"><div class="av">PS</div><div><span class="muted">Clinically reviewed by</span><br><b>Dr. Priya Sharma, MPT</b><br><span class="bd ok">✓ Verified physio</span></div></div><span style="display:block;margin-top:6px;color:#0e8a6a;font-weight:700;font-size:10px">View profile →</span></div>
+            <div class="art" style="height:90px">🧍‍♀️</div>
+            <p class="muted" style="margin-top:8px;line-height:1.5">Prolonged sitting increases lumbar disc loading. Micro-breaks every 30 minutes…</p>
+          </div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Published with attribution</h3>
+        <div class="n"><b>Editor</b>Runs final checks and publishes in WordPress</div>
+        <div class="n"><b>Article shows</b><ul><li>Name and qualifications</li><li>Verified badge</li><li>Link to the directory profile</li></ul></div>
+        <div class="n next"><b>Physio</b>Gets a “Your article is live” push</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ 7. BLOG IDEAS ============ -->
+<div class="stage">
+  <div class="stage-label"><span>7</span>Blog ideas and patient queries</div>
+  <div class="flow">
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <h6>Suggest a blog idea</h6>
+          <p class="muted">What do your patients keep asking you?</p>
+          <div class="in">Is it safe to run with knee OA?</div>
+          <div class="ta">Patients aged 45+ with early OA ask this weekly. Most think running will “wear out” the joint. A clear guide on load management would help.</div>
+          <div class="fl"><span class="on">Knee</span><span>Exercise</span><span>Pain</span></div>
+          <div class="warn">🔒 Don't include names or any detail that could identify a patient.</div>
+          <div class="btn">Submit idea</div>
+        </div>
+        <div class="tab"><span><b>⌂</b>Home</span><span><b>⌕</b>Directory</span><span class="on"><b>✎</b>Blogs</span><span><b>◉</b>Profile</span></div>
+      </div></div>
+      <div class="notes">
+        <h3>Submit an idea</h3>
+        <div class="n"><b>Physio</b>Submits a recurring patient question or topic, with context and why it matters</div>
+        <div class="n"><b>Rule</b>Anonymised only. No patient-identifiable information.</div>
+        <div class="n next"><b>Next</b>Content team reviews it</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <h6>My ideas</h6>
+          <div class="c"><div class="row sp"><b>Running with knee OA</b><span class="bd vi">Submitted</span></div><span class="muted">2 days ago</span></div>
+          <div class="c" style="border-color:#bfe8d6"><div class="row sp"><b>Text neck in teens</b><span class="bd ok">Accepted</span></div>
+            <p class="muted" style="margin:5px 0 2px">Who should write it?</p>
+            <div class="acts" style="grid-template-columns:1fr 1fr;margin-top:4px"><span class="a1">I'll write it</span><span style="background:#eef3f1">Team writes</span></div>
+          </div>
+          <div class="c"><div class="row sp"><b>Sciatica vs. piriformis</b><span class="bd wt">Clarify</span></div><span class="muted">“Which age group do you see this in most?”</span></div>
+          <div class="c"><div class="row sp"><b>Best mattress for back pain</b><span class="bd no">Not taken</span></div><span class="muted">Already covered in an existing article</span></div>
+        </div>
+        <div class="tab"><span><b>⌂</b>Home</span><span><b>⌕</b>Directory</span><span class="on"><b>✎</b>Blogs</span><span><b>◉</b>Profile</span></div>
+      </div></div>
+      <div class="notes">
+        <h3>Track status</h3>
+        <div class="n"><b>Statuses</b><ul><li>Submitted</li><li>Accepted</li><li>Clarification needed</li><li>Not taken forward</li></ul></div>
+        <div class="n"><b>If accepted</b>The physio writes the draft, or the Betterhood team writes it</div>
+        <div class="n next"><b>Next</b>Draft goes to editorial and clinical review</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <span class="muted">← Text neck in teens</span>
+          <h6>Final approval</h6>
+          <div class="c">
+            <div class="ck"><i>✓</i>Idea accepted</div>
+            <div class="ck"><i>✓</i>Draft submitted by you</div>
+            <div class="ck"><i>✓</i>Editorial review done</div>
+            <div class="ck"><i>✓</i>Clinical review done</div>
+            <div class="ck"><i class="w">!</i><b>Your final approval</b></div>
+            <div class="ck"><i class="o"></i><span class="muted">Published</span></div>
+          </div>
+          <div class="c" style="padding:9px"><span class="muted">Byline preview</span><br><b>By Dr. Priya Sharma, MPT</b> <span class="bd ok">✓</span></div>
+          <div class="warn">I approve this final version for publication under my name and credentials.</div>
+          <div class="btn">Approve and publish</div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Approve and publish</h3>
+        <div class="n"><b>Physio</b>Reviews the final version and gives explicit approval</div>
+        <div class="n"><b>Result</b>Published on betterhood.in with author attribution and a profile link</div>
+        <div class="n next"><b>Loop</b>Submit the next idea or review the next assigned blog</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  try{var t=localStorage.getItem('bh-theme'); if(t) root.setAttribute('data-theme',t);}catch(e){}
+  document.getElementById('themeBtn').addEventListener('click',function(){
+    var cur=root.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+    var next=cur==='dark'?'light':'dark';
+    root.setAttribute('data-theme',next);
+    try{localStorage.setItem('bh-theme',next);}catch(e){}
+  });
+})();
+</script>
+</body>
+</html>

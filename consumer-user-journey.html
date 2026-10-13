@@ -1,0 +1,926 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>User Journey</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --canvas:#eef1f0;
+  --dot:#d3dad7;
+  --ink:#0f1f1a;
+  --ink-2:#4a5c55;
+  --ink-3:#83938c;
+  --card:#ffffff;
+  --line:#dbe3df;
+  --brand:#0e8a6a;
+  --brand-soft:#dff5ec;
+  --arrow:#9aa9a3;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --canvas:#0d1411;--dot:#1e2a25;--ink:#e8f1ed;--ink-2:#a9bbb3;--ink-3:#71847c;--card:#151f1b;--line:#26352f;
+    --brand:#2fd3a3;--brand-soft:#133429;--arrow:#4b5d56;
+  }
+}
+:root[data-theme="dark"]{
+  --canvas:#0d1411;--dot:#1e2a25;--ink:#e8f1ed;--ink-2:#a9bbb3;--ink-3:#71847c;--card:#151f1b;--line:#26352f;
+  --brand:#2fd3a3;--brand-soft:#133429;--arrow:#4b5d56;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background-color:var(--canvas);
+  background-image:radial-gradient(var(--dot) 1.2px,transparent 1.2px);
+  background-size:22px 22px;
+  color:var(--ink);font-family:"Plus Jakarta Sans",system-ui,sans-serif;line-height:1.5;
+  -webkit-font-smoothing:antialiased;padding:40px 32px 80px;
+}
+@media (max-width:600px){body{padding:24px 16px 60px}}
+
+.title{margin-bottom:36px}
+.title h1{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.title p{color:var(--ink-3);font-size:14px;margin-top:2px}
+
+.stage{margin-bottom:56px}
+.stage-label{display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:15px;margin-bottom:18px;padding:8px 14px 8px 8px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+.stage-label span{width:26px;height:26px;border-radius:8px;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:12px}
+.stage-label.later span{background:var(--ink-3)}
+.flow{display:flex;flex-wrap:wrap;align-items:flex-start;gap:20px 0}
+
+.step{display:flex;align-items:flex-start;gap:14px}
+.arrow{align-self:center;width:56px;height:2px;background:var(--arrow);position:relative;margin:0 14px}
+.arrow::after{content:"";position:absolute;right:-1px;top:-5px;border:6px solid transparent;border-left:8px solid var(--arrow);border-right:0}
+@media (max-width:760px){
+  .flow{flex-direction:column;align-items:stretch}
+  .step{flex-direction:column;align-items:center}
+  .arrow{width:2px;height:36px;margin:14px auto}
+  .arrow::after{right:-5px;top:auto;bottom:-1px;border:6px solid transparent;border-top:8px solid var(--arrow);border-bottom:0}
+}
+
+.notes{width:230px;padding-top:6px}
+@media (max-width:760px){.notes{width:100%;max-width:320px}}
+.notes h3{font-size:15px;font-weight:800;letter-spacing:-.01em;margin-bottom:10px}
+.n{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;font-size:12.5px;color:var(--ink-2)}
+.n b{display:block;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:3px}
+.n ul{padding-left:16px}
+.n li{margin:2px 0}
+.n.next{background:var(--brand-soft);border-color:transparent;color:var(--brand);font-weight:600}
+.n.next b{color:var(--brand);opacity:.8}
+.n.alert{border-color:#f0b4b4}
+.n.alert b{color:#c03535}
+
+.later-card{background:var(--card);border:1.5px dashed var(--line);border-radius:16px;padding:18px 20px;max-width:720px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 24px;font-size:13.5px;color:var(--ink-2)}
+.later-card div::before{content:"○ ";color:var(--ink-3);font-weight:800}
+
+/* phone */
+.phone{width:236px;flex:none;background:#0f1f1a;border-radius:38px;padding:9px;box-shadow:0 24px 48px -18px rgba(15,31,26,.35)}
+.screen{background:#fbfdfc;border-radius:30px;height:480px;overflow:hidden;position:relative;color:#0f1f1a;font-size:11px}
+.notch{position:absolute;top:7px;left:50%;transform:translateX(-50%);width:74px;height:20px;background:#000;border-radius:12px;z-index:3}
+.sb{display:flex;justify-content:space-between;padding:10px 20px 0;font-weight:700;font-size:10px;height:34px}
+.scr{padding:6px 14px 14px}
+.scr h6{font-size:15px;font-weight:800;letter-spacing:-.02em;margin:6px 0 4px;line-height:1.25}
+.muted{color:#6b7c75;font-size:10.5px}
+.c{background:#fff;border:1px solid #e4ece8;border-radius:12px;padding:10px;margin-top:9px}
+.btn{display:block;text-align:center;background:#0e8a6a;color:#fff;font-weight:700;border-radius:11px;padding:10px;margin-top:10px;font-size:11.5px}
+.btn.g{background:#eef3f1;color:#0f1f1a}
+.btn.r{background:#d64545}
+.in{border:1.5px solid #dbe5e0;border-radius:10px;padding:9px 10px;margin-top:7px;color:#44564f;background:#fff}
+.otp{display:flex;gap:6px;margin-top:9px}
+.otp span{flex:1;height:36px;border:1.5px solid #dbe5e0;border-radius:9px;display:grid;place-items:center;font-weight:800;font-size:14px;background:#fff}
+.otp span.f{border-color:#0e8a6a;background:#eafaf4}
+.bar{height:6px;background:#e7eeeb;border-radius:6px;overflow:hidden;margin:4px 0 8px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#0e8a6a,#14b88c)}
+.row{display:flex;align-items:center;gap:9px}
+.sp{justify-content:space-between}
+.av{width:34px;height:34px;border-radius:11px;background:linear-gradient(135deg,#0e8a6a,#6c5ce7);flex:none;color:#fff;display:grid;place-items:center;font-weight:800;font-size:11px}
+.bd{font-size:9.5px;font-weight:700;padding:3px 7px;border-radius:999px;white-space:nowrap}
+.ok{background:#dff5ec;color:#0e8a6a}.wt{background:#fff4d1;color:#9a6c00}.no{background:#fde4e4;color:#c03535}.vi{background:#ece9ff;color:#5a49d6}.gr{background:#eef3f1;color:#6b7c75}
+.ck{display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px dashed #e4ece8;font-size:10.5px}
+.ck:last-child{border:0}
+.ck i{width:15px;height:15px;border-radius:50%;flex:none;display:grid;place-items:center;font-style:normal;font-size:8px;color:#fff;background:#0e8a6a}
+.ck i.o{background:#fff;border:1.5px solid #c8d4cf}
+.tab{position:absolute;bottom:0;left:0;right:0;height:52px;background:#fff;border-top:1px solid #e4ece8;display:flex;justify-content:space-around;align-items:center;font-size:9px;color:#7a8b84;font-weight:600}
+.tab span{text-align:center}.tab .on{color:#0e8a6a}
+.tab b{display:block;font-size:14px;font-weight:400}
+.srch{background:#eef3f1;border-radius:10px;padding:8px 10px;color:#7a8b84;margin-top:7px}
+.fl{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+.fl span{font-size:9.5px;font-weight:700;padding:4px 8px;border-radius:999px;background:#eef3f1}
+.fl span.on{background:#0f1f1a;color:#fff}
+.hero-img{height:96px;border-radius:14px;background:linear-gradient(135deg,#dff5ec,#ece9ff);display:grid;place-items:center;font-size:40px;margin-top:6px}
+.art{height:64px;border-radius:11px;background:linear-gradient(135deg,#ffe9df,#ece9ff);display:grid;place-items:center;font-size:24px}
+.warn{background:#fff4d1;color:#7a5600;border-radius:9px;padding:7px 9px;margin-top:9px;font-size:9.5px;font-weight:600}
+.feat{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid #eef3f1;line-height:1.3}
+.feat:last-child{border:0}
+.feat .ic{width:24px;height:24px;border-radius:7px;background:#dff5ec;display:grid;place-items:center;flex:none;font-size:11px}
+.lockscreen{background:linear-gradient(160deg,#1d3b33,#0f1f1a 60%,#2a2050);height:100%;color:#fff;padding:48px 12px 12px}
+.clock{text-align:center;font-size:46px;font-weight:300;letter-spacing:-.02em}
+.date{text-align:center;font-size:11px;opacity:.75;margin-bottom:22px}
+.push{background:rgba(255,255,255,.92);color:#0f1f1a;border-radius:15px;padding:10px;margin-bottom:8px;display:flex;gap:9px;font-size:10.5px}
+.push .ic{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#0e8a6a,#14b88c);color:#fff;display:grid;place-items:center;font-weight:800;flex:none}
+.push small{color:#6b7c75}
+.web{background:#fff;height:100%}
+.urlbar{margin:38px 10px 0;background:#eef3f1;border-radius:9px;padding:6px 10px;font-size:9.5px;color:#6b7c75;text-align:center}
+.webhead{padding:10px 14px;border-bottom:1px solid #eef3f1;font-weight:800;font-size:12px;color:#0e8a6a}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chips span{font-size:10.5px;font-weight:600;padding:6px 10px;border-radius:10px;border:1.5px solid #dbe5e0;background:#fff}
+.chips span.on{border-color:#0e8a6a;background:#eafaf4;color:#0e8a6a}
+.scale{display:grid;grid-template-columns:repeat(11,1fr);gap:3px;margin-top:8px}
+.scale span{height:28px;border-radius:7px;display:grid;place-items:center;font-weight:700;font-size:10px;background:#eef3f1}
+.scale span.on{background:#e0a100;color:#fff}
+.opt{border:1.5px solid #dbe5e0;border-radius:10px;padding:9px 10px;margin-top:6px;background:#fff;display:flex;justify-content:space-between;align-items:center}
+.opt.on{border-color:#0e8a6a;background:#eafaf4}
+.gauge{width:104px;height:104px;border-radius:50%;margin:8px auto 4px;background:conic-gradient(#e0a100 0 60%,#eef3f1 60% 100%);display:grid;place-items:center}
+.gauge div{width:80px;height:80px;border-radius:50%;background:#fbfdfc;display:grid;place-items:center;text-align:center;line-height:1.1}
+.gauge b{font-size:24px}
+.prod{display:flex;gap:9px;align-items:center}
+.prod .pi{width:46px;height:46px;border-radius:10px;background:linear-gradient(135deg,#ffe9df,#fff4d1);display:grid;place-items:center;font-size:20px;flex:none}
+.tgl{width:30px;height:17px;border-radius:999px;background:#0e8a6a;position:relative;flex:none}
+.tgl::after{content:"";position:absolute;right:2px;top:2px;width:13px;height:13px;border-radius:50%;background:#fff}
+.tgl.off{background:#c8d4cf}.tgl.off::after{right:auto;left:2px}
+.setrow{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #eef3f1}
+.setrow:last-child{border:0}
+
+.theme-btn{position:fixed;top:16px;right:16px;border:1px solid var(--line);background:var(--card);color:var(--ink);width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:15px}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}
+.tool{background:#fff;border:1px solid #e4ece8;border-radius:12px;padding:9px;line-height:1.25}
+.tool span{font-size:17px;display:block}
+.tool b{display:block;font-size:10.5px;margin-top:3px}
+.tool small{color:#6b7c75;font-size:9px}
+.tool.fun{background:linear-gradient(135deg,#ffe9df,#ece9ff);border-color:transparent}
+.cam{padding:46px 16px 16px;height:100%;display:flex;flex-direction:column}
+.cam-frame{flex:1;max-height:290px;border-radius:18px;background:linear-gradient(160deg,#2b3a35,#1a1a2e);position:relative;display:grid;place-items:center}
+.cnr{position:absolute;width:22px;height:22px;border-color:#14b88c;border-style:solid}
+.cnr.tl{top:12px;left:12px;border-width:3px 0 0 3px}.cnr.tr{top:12px;right:12px;border-width:3px 3px 0 0}
+.cnr.bl{bottom:12px;left:12px;border-width:0 0 3px 3px}.cnr.br{bottom:12px;right:12px;border-width:0 3px 3px 0}
+.cam-tag{position:absolute;bottom:22px;background:#ff7a45;color:#fff;font-weight:800;font-size:10px;padding:4px 10px;border-radius:999px}
+.shutter{width:54px;height:54px;border-radius:50%;border:4px solid #fff;background:#fff;box-shadow:inset 0 0 0 3px #111;margin:14px auto 0}
+.score{text-align:center;font-size:30px;font-weight:800;color:#e0a100;line-height:1}
+.score small{font-size:12px;color:#6b7c75}
+.stars{color:#e0a100;letter-spacing:1px}
+.ring{width:110px;height:110px;border-radius:50%;margin:10px auto 8px;background:conic-gradient(#0e8a6a 0 67%,#eef3f1 67% 100%);display:grid;place-items:center}
+.ring div{width:88px;height:88px;border-radius:50%;background:#fbfdfc;display:grid;place-items:center;text-align:center;line-height:1.1}
+.ring b{font-size:22px}
+.faces{display:flex;justify-content:space-between;margin-top:6px}
+.faces span{font-size:22px;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:#eef3f1;opacity:.6}
+.faces span.on{background:#fff4d1;opacity:1;outline:2px solid #e0a100}
+.ynq{padding:7px 0;border-bottom:1px dashed #e4ece8;font-size:10px}
+.ynq:last-child{border:0}
+</style>
+</head>
+<body>
+<button class="theme-btn" id="themeBtn" aria-label="Toggle colour theme">◐</button>
+
+<div class="title">
+  <h1>Betterhood App · User journey</h1>
+  <p>From searching for back pain to assessments, content, physios and products</p>
+</div>
+
+<!-- ============ 1. DISCOVER ============ -->
+<div class="stage">
+  <div class="stage-label"><span>1</span>Discovers Betterhood</div>
+  <div class="flow">
+
+    <div class="step">
+      <div class="phone"><div class="screen"><div class="web">
+        <div class="urlbar">🔒 betterhood.in/blog/lower-back-pain-sitting</div>
+        <div class="webhead">betterhood</div>
+        <div class="scr">
+          <h6 style="font-size:13.5px">Lower back pain from sitting all day: what actually helps</h6>
+          <div class="c" style="background:#eafaf4;border-color:#bfe8d6;padding:8px"><div class="row"><div class="av" style="width:28px;height:28px;font-size:10px">PS</div><div><span class="muted">Clinically reviewed by</span><br><b>Dr. Priya Sharma, MPT</b> <span class="bd ok">✓</span></div></div></div>
+          <div class="art" style="margin-top:8px">🪑</div>
+          <p class="muted" style="margin-top:7px;line-height:1.5">Sitting for long hours loads the lower back. Here are 7 changes that help…</p>
+          <div class="c" style="background:#0f1f1a;color:#fff;border:0">
+            <b>Not sure what's causing your pain?</b><br><span style="opacity:.8;font-size:10px">Take the free 5–10 minute pain assessment.</span>
+            <div class="btn" style="margin-top:8px">Get the Betterhood app</div>
+          </div>
+        </div>
+      </div></div></div>
+      <div class="notes">
+        <h3>Finds an article</h3>
+        <div class="n"><b>User</b>Googles “lower back pain from sitting all day” and lands on a Betterhood article reviewed by a verified physio</div>
+        <div class="n"><b>Other ways in</b><ul><li>A physio shares a link</li><li>A friend forwards it on WhatsApp</li><li>Instagram or social media</li><li>shop.betterhood.in</li></ul></div>
+        <div class="n next"><b>Next</b>Taps the assessment prompt and installs the app</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <div class="hero-img">💪</div>
+          <h6>Feel better, move better</h6>
+          <p class="muted">Expert help for muscle, joint and back pain.</p>
+          <div class="c" style="padding:2px 10px">
+            <div class="feat"><div class="ic">📋</div><div><b>Free pain assessments</b><br><span class="muted">Understand what's causing it</span></div></div>
+            <div class="feat"><div class="ic">🧍</div><div><b>Fun and handy tools</b><br><span class="muted">Slouch Catcher, stretch breaks, pain diary</span></div></div>
+            <div class="feat"><div class="ic">📚</div><div><b>1,000+ articles</b><br><span class="muted">Reviewed by verified physios</span></div></div>
+            <div class="feat"><div class="ic">🏃</div><div><b>Home exercises and tips</b><br><span class="muted">Simple steps you can follow</span></div></div>
+            <div class="feat"><div class="ic">📍</div><div><b>Verified physios near you</b><br><span class="muted">Find the right expert</span></div></div>
+            <div class="feat"><div class="ic">📈</div><div><b>Track your progress</b><br><span class="muted">See your pain improve</span></div></div>
+          </div>
+          <div class="btn">Get started</div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Welcome</h3>
+        <div class="n"><b>User</b>Sees what the app can do for him before being asked for anything</div>
+        <div class="n"><b>Shown</b><ul><li>Pain assessments</li><li>Care tools (Slouch Catcher, stretch breaks, pain diary…)</li><li>Physio-reviewed articles</li><li>Home exercises</li><li>Physio directory</li><li>Physio-recommended products</li><li>Progress tracking</li></ul></div>
+        <div class="n next"><b>Next</b>Sign up</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ 2. SIGN UP ============ -->
+<div class="stage">
+  <div class="stage-label"><span>2</span>Signs up</div>
+  <div class="flow">
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <span class="bd vi">Step 1 of 2</span>
+          <h6>Create your account</h6>
+          <p class="muted">So we can save your assessments and progress.</p>
+          <div class="in">🇮🇳 +91 99xxx x2210</div>
+          <div class="otp"><span class="f">7</span><span class="f">3</span><span class="f">0</span><span class="f">9</span><span>_</span><span>_</span></div>
+          <div class="in">Rahul Verma</div>
+          <div class="row" style="gap:6px"><div class="in" style="flex:1">25–34</div><div class="in" style="flex:1">Male</div></div>
+          <div class="in">📍 Bengaluru</div>
+          <div class="btn">Continue</div>
+          <p class="muted" style="text-align:center;margin-top:8px">Just browsing? <b style="color:#0e8a6a">Skip for now</b></p>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Phone OTP and basic details</h3>
+        <div class="n"><b>User</b>Enters phone number and OTP, then name, age range, gender and city</div>
+        <div class="n"><b>Optional</b>Can skip and browse articles without an account</div>
+        <div class="n"><b>System</b><ul><li>One phone number per account</li><li>Linked to his shop.betterhood.in account if the number matches</li></ul></div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <span class="bd vi">Step 2 of 2</span>
+          <h6>Where do you feel pain?</h6>
+          <p class="muted">Optional. Helps us show you the right content.</p>
+          <div class="chips"><span class="on">Lower back</span><span class="on">Neck</span><span>Shoulder</span><span>Knee</span><span>Hip</span><span>Wrist</span><span>Ankle</span><span>Upper back</span></div>
+          <div class="c" style="font-size:10px;color:#44564f">
+            <div class="ck"><i>✓</i>I agree to the Terms and Privacy Policy</div>
+            <div class="ck"><i>✓</i>I allow Betterhood to store my health answers (pain details, assessments)</div>
+            <div class="ck"><i class="o"></i>Send me tips and offers</div>
+          </div>
+          <p class="muted" style="margin-top:8px">ⓘ <b style="color:#0e8a6a">What we collect and why</b></p>
+          <div class="btn">Done</div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Pain areas and consent</h3>
+        <div class="n"><b>User</b>Picks pain areas (optional) and agrees to the terms</div>
+        <div class="n"><b>Consent</b><ul><li>Separate consent for health data</li><li>Marketing is opt-in</li><li>Plain-language explanation of the data collected (DPDP Act)</li></ul></div>
+        <div class="n next"><b>Next</b>Take a pain assessment</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ 3. ASSESSMENT ============ -->
+<div class="stage">
+  <div class="stage-label"><span>3</span>Takes a pain assessment</div>
+  <div class="flow">
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <h6>Choose your health concern</h6>
+          <p class="muted">Designed by our experts · 5–10 minutes</p>
+          <div class="c" style="border-color:#0e8a6a;background:#eafaf4"><div class="row"><div class="art" style="width:40px;height:40px;flex:none;font-size:18px">🔙</div><div style="flex:1"><b>Back Pain</b><br><span class="muted">Timely action can prevent 80% of back surgeries</span></div></div></div>
+          <div class="c"><div class="row"><div class="art" style="width:40px;height:40px;flex:none;font-size:18px">🧣</div><div style="flex:1"><b>Neck Pain</b><br><span class="muted">Persistent neck pain could signal nerve damage</span></div></div></div>
+          <div class="c"><div class="row"><div class="art" style="width:40px;height:40px;flex:none;font-size:18px">💪</div><div style="flex:1"><b>Shoulder Pain</b><br><span class="muted">Long-term shoulder pain risks serious tendon injury</span></div></div></div>
+          <div class="c"><div class="row"><div class="art" style="width:40px;height:40px;flex:none;font-size:18px">🦵</div><div style="flex:1"><b>Knee Pain</b><br><span class="muted">Chronic knee pain often indicates arthritis</span></div></div></div>
+          <div class="btn">Take assessment</div>
+        </div>
+        <div class="tab"><span><b>⌂</b>Home</span><span class="on"><b>📋</b>Assess</span><span><b>🧰</b>Tools</span><span><b>📚</b>Learn</span><span><b>⌕</b>Physios</span></div>
+      </div></div>
+      <div class="notes">
+        <h3>Pick an assessment</h3>
+        <div class="n"><b>Available today</b><ul><li>Back pain</li><li>Neck pain</li><li>Shoulder pain</li><li>Knee pain</li></ul></div>
+        <div class="n"><b>Source</b>Same Level 1 assessments as betterhood.in/quiz-landing-page</div>
+        <div class="n next"><b>User</b>Picks Back Pain</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <div class="row sp"><span class="muted">Back pain assessment</span><span class="muted">About you</span></div>
+          <div class="bar"><i style="width:8%"></i></div>
+          <h6>Hey there! Tell us about yourself</h6>
+          <p class="muted">This assessment tool is designed by our experts.</p>
+          <p class="muted" style="margin-top:10px">Gender</p>
+          <div class="row" style="gap:6px"><div class="opt on" style="flex:1;margin-top:4px"><b>Male</b></div><div class="opt" style="flex:1;margin-top:4px">Female</div></div>
+          <p class="muted" style="margin-top:8px">Age (in years)</p><div class="in" style="margin-top:4px">32</div>
+          <p class="muted" style="margin-top:8px">Weight (in kgs)</p><div class="in" style="margin-top:4px">78</div>
+          <p class="muted" style="margin-top:8px">Height (in cms)</p><div class="in" style="margin-top:4px">175</div>
+          <div class="btn">Next</div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>About you</h3>
+        <div class="n"><b>Fields</b>Gender, age, weight, height</div>
+        <div class="n"><b>In the app</b>Prefilled from sign-up, so he only confirms them. Name, email and phone aren't asked again (the website asks for them before showing results).</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <div class="row sp"><span class="muted">Back pain assessment</span><span class="muted">1 / 7</span></div>
+          <div class="bar"><i style="width:14%"></i></div>
+          <h6>Where is your lower back pain located?</h6>
+          <p class="muted">Choose all that apply</p>
+          <div class="opt">Localized in one or more spots<span>○</span></div>
+          <div class="opt on"><b>Spread across the entire lower back</b><span style="color:#0e8a6a">●</span></div>
+          <div class="opt">Extends into the buttocks &amp; thighs, but stops at the knee<span>○</span></div>
+          <div class="opt">Extends below the knee into calf muscles &amp; feet<span>○</span></div>
+          <div class="opt">None of the above<span>○</span></div>
+          <div class="btn">Next</div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>7 questions</h3>
+        <div class="n"><b>Back pain</b><ul><li>Where the pain is</li><li>Pain or stiffness in other joints</li><li>How the symptoms feel</li><li>Other symptoms (e.g., bladder or bowel difficulty, morning stiffness)</li><li>Pain level, 0–10</li><li>What it started with (injury, fever, pregnancy…)</li><li>What makes it worse</li></ul></div>
+        <div class="n"><b>Others</b>Neck has the same 7. Shoulder and knee have 6 each, tailored to that joint.</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <div class="row sp"><span class="muted">Back pain assessment</span><span class="muted">5 / 7</span></div>
+          <div class="bar"><i style="width:71%"></i></div>
+          <h6>How bad is your pain?</h6>
+          <p class="muted">0 is no pain, 10 is the worst pain</p>
+          <div class="gauge" style="margin-top:14px"><div><span><b>6</b><br><span class="muted">Distressing</span></span></div></div>
+          <div class="scale"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span class="on">6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
+          <div class="row sp" style="margin-top:5px"><span class="muted" style="font-size:9px">No pain</span><span class="muted" style="font-size:9px">Unspeakable</span></div>
+          <div class="c" style="padding:8px;font-size:10px;color:#44564f">1 Mild · 3 Uncomfortable · 5 Distracting · 7 Severe · 9 Excruciating</div>
+          <div class="btn">Next</div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Pain level</h3>
+        <div class="n"><b>Scale</b>0 “No pain” to 10 “Unspeakable”, with a label at every step</div>
+        <div class="n"><b>In the app</b>Saved with each assessment so he can track it over time (stage 8)</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <div class="row sp"><span class="muted">Back pain assessment</span><span class="muted">6 / 7</span></div>
+          <div class="bar"><i style="width:86%"></i></div>
+          <h6 style="font-size:13px">Is your back pain accompanied by, or did it start after, any of these?</h6>
+          <div class="opt" style="padding:7px 10px">Injury from a fall, accident or sport<span>○</span></div>
+          <div class="opt" style="padding:7px 10px">Abdominal pain<span>○</span></div>
+          <div class="opt" style="padding:7px 10px">Fever or infection<span>○</span></div>
+          <div class="opt" style="padding:7px 10px">Pregnancy<span>○</span></div>
+          <div class="opt" style="padding:7px 10px">Autoimmune disorder<span>○</span></div>
+          <div class="opt" style="padding:7px 10px">Known spinal deformity<span>○</span></div>
+          <div class="opt on" style="padding:7px 10px"><b>None of the above</b><span style="color:#0e8a6a">●</span></div>
+          <div class="c" style="background:#fde4e4;border-color:#f3c4c4;color:#a32b2b;font-size:9.5px;padding:8px">
+            <b>⚠ Critical advisory</b> (shown if a warning sign is picked): “Some of your responses indicate probable complications which need thorough medical assessment. Please visit your medical practitioner.”
+          </div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Safety check</h3>
+        <div class="n alert"><b>Warning signs</b><ul><li>Difficulty urinating or with bowel movements</li><li>Loss of muscle size in the legs</li><li>Injury, fever or infection</li><li>Autoimmune disorder or spinal deformity</li></ul></div>
+        <div class="n"><b>If present</b>A critical advisory tells him to see a doctor before starting any routine</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr" style="padding-bottom:60px">
+          <h6>Your results</h6>
+          <div class="hero-img" style="height:78px;font-size:34px">🧍‍♂️</div>
+          <span class="bd vi" style="display:inline-block;margin-top:8px">Muscle</span>
+          <h6 style="font-size:14px;margin-top:4px">Muscular imbalance</h6>
+          <p class="muted" style="line-height:1.45">Your symptoms are most likely due to deconditioned back muscles. The betterhood™ routine can help.</p>
+          <div class="c" style="padding:8px">
+            <div class="row sp"><b>📄 Full report (PDF)</b><span>›</span></div>
+            <div class="row sp" style="margin-top:6px"><b>📚 Articles for you</b><span>›</span></div>
+            <div class="row sp" style="margin-top:6px"><b>📍 Back physios near you</b><span>›</span></div>
+            <div class="row sp" style="margin-top:6px"><b>🛒 Back-care essentials</b><span>›</span></div>
+          </div>
+          <p class="muted" style="margin-top:7px;font-size:9px">Results are indicative and don't replace a medical consultation.</p>
+        </div>
+        <div class="tab"><span><b>⌂</b>Home</span><span class="on"><b>📋</b>Assess</span><span><b>🧰</b>Tools</span><span><b>📚</b>Learn</span><span><b>⌕</b>Physios</span></div>
+      </div></div>
+      <div class="notes">
+        <h3>Results</h3>
+        <div class="n"><b>Back pain: 1 of 4 results</b><ul><li>Muscle: muscular imbalance</li><li>Nerve: compressed nerves</li><li>Bone: spinal instability</li><li>Joint: wear and tear of spinal joints</li></ul></div>
+        <div class="n"><b>Also gets</b>A PDF report (also emailed), plus articles, physios and products</div>
+        <div class="n"><b>In the app</b>Saved to his profile. He can share it with a physio.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ 4. POSTURE ============ -->
+<div class="stage">
+  <div class="stage-label"><span>4</span>Uses care tools</div>
+  <div class="flow">
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <h6>Care tools</h6>
+          <p class="muted">Quick, free tools for everyday aches</p>
+          <div class="tools">
+            <div class="tool fun"><span>📸</span><b>Slouch Catcher</b><small>Catch a friend slouching</small></div>
+            <div class="tool"><span>⏱️</span><b>Stretch Break</b><small>2-min desk routine</small></div>
+            <div class="tool"><span>📓</span><b>Pain Diary</b><small>Log pain daily</small></div>
+            <div class="tool"><span>🖥️</span><b>Desk Setup Check</b><small>Fix your workstation</small></div>
+            <div class="tool"><span>🛏️</span><b>Pillow Finder</b><small>Sleep posture quiz</small></div>
+            <div class="tool"><span>🧊</span><b>Ice or Heat?</b><small>What to use, when</small></div>
+            <div class="tool"><span>🚗</span><b>Long Drive Guide</b><small>Back care on the road</small></div>
+            <div class="tool"><span>🏃</span><b>Daily Routine</b><small>10-min exercises</small></div>
+          </div>
+        </div>
+        <div class="tab"><span><b>⌂</b>Home</span><span><b>📋</b>Assess</span><span class="on"><b>🧰</b>Tools</span><span><b>📚</b>Learn</span><span><b>⌕</b>Physios</span></div>
+      </div></div>
+      <div class="notes">
+        <h3>Tools hub</h3>
+        <div class="n"><b>Fun</b>Slouch Catcher, which already exists on betterhood.in</div>
+        <div class="n"><b>Helpful (new)</b><ul><li>Stretch break timer</li><li>Pain diary</li><li>Desk setup check</li><li>Pillow finder</li><li>Ice or heat guide</li><li>Long drive guide</li><li>Daily exercise routine</li></ul></div>
+        <div class="n"><b>Trigger</b>Suggested on his assessment result, or opened from the Tools tab</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen" style="background:#111">
+        <div class="notch"></div>
+        <div class="cam">
+          <div class="cam-frame"><span class="cnr tl"></span><span class="cnr tr"></span><span class="cnr bl"></span><span class="cnr br"></span>
+            <div style="font-size:64px;line-height:1">🧑‍💻</div>
+            <div class="cam-tag">Slouch detected 👀</div>
+          </div>
+          <p style="color:#fff;text-align:center;font-weight:700;margin-top:12px">Catch them in the act!</p>
+          <p style="color:#aaa;text-align:center;font-size:10px">Snap a friend, colleague or partner while they slouch</p>
+          <div class="shutter"></div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Slouch Catcher: catch</h3>
+        <div class="n"><b>User</b>Snaps a photo of a slouching colleague (or himself)</div>
+        <div class="n"><b>System</b>Analyses the posture and returns a result in about 10 seconds</div>
+        <div class="n"><b>Why it's here</b>A fun, shareable hook that also makes people notice their own posture</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <p class="muted" style="text-align:center">Arjun's posture persona</p>
+          <div style="text-align:center;font-size:52px;line-height:1.1;margin-top:4px">🐢</div>
+          <h6 style="text-align:center;font-size:18px">The Turtle</h6>
+          <div class="score">52<small>/100</small></div>
+          <p class="muted" style="text-align:center;font-style:italic">“Head so far forward, it's arriving at meetings before you.”</p>
+          <div class="c" style="padding:8px">
+            <b style="font-size:10px">Detailed Shame Report</b>
+            <div class="row sp" style="margin-top:4px"><span>Neck</span><span class="stars">★★☆☆☆</span></div>
+            <div class="row sp"><span>Shoulders</span><span class="stars">★★★☆☆</span></div>
+            <div class="row sp"><span>Back</span><span class="stars">★★☆☆☆</span></div>
+            <div class="row sp"><span>Hips</span><span class="stars">★★★★☆</span></div>
+          </div>
+          <div class="btn" style="background:#25d366">Share on WhatsApp</div>
+          <div class="btn g">Fix it: 2-min neck routine →</div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Slouch Catcher: result</h3>
+        <div class="n"><b>Shows</b><ul><li>Score out of 100</li><li>Animal persona, from Shrimp to Peacock</li><li>A playful roast</li><li>Shame Report on neck, shoulders, back and hips</li></ul></div>
+        <div class="n"><b>Share</b>WhatsApp message with the score, persona and a challenge link, which brings new users in</div>
+        <div class="n next"><b>App adds</b>A “Fix it” link to a matching stretch routine</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <span class="muted">← Tools</span>
+          <h6>Stretch break</h6>
+          <p class="muted">2 minutes · No equipment · At your desk</p>
+          <div class="ring"><div><b>0:40</b><br><span class="muted">left</span></div></div>
+          <p style="text-align:center;font-weight:800;font-size:13px">Seated chin tucks</p>
+          <p class="muted" style="text-align:center">Pull your chin straight back, hold 3 secs. Repeat 10 times.</p>
+          <div class="c" style="padding:8px">
+            <div class="ck"><i>✓</i>Neck rolls</div>
+            <div class="ck"><i>✓</i>Shoulder shrugs</div>
+            <div class="ck"><i class="o"></i><b>Chin tucks</b></div>
+            <div class="ck"><i class="o"></i>Seated spinal twist</div>
+          </div>
+          <div class="row sp" style="margin-top:8px"><b>Remind me every</b><span class="bd ok">45 min</span></div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Stretch break timer</h3>
+        <div class="n"><b>User</b>Follows a guided 2-minute routine, with a timer for each move</div>
+        <div class="n"><b>Routines</b>Matched to his pain area (back, neck, shoulder, knee)</div>
+        <div class="n"><b>Reminders</b>Every 30, 45 or 60 minutes during work hours</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <span class="muted">← Tools</span>
+          <h6>Pain diary</h6>
+          <p class="muted">How's your back today?</p>
+          <div class="faces"><span>😀</span><span>🙂</span><span class="on">😐</span><span>😣</span><span>😫</span></div>
+          <div class="scale" style="margin-top:6px"><span>0</span><span>1</span><span>2</span><span>3</span><span class="on">4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
+          <p class="muted" style="margin-top:8px">What made it worse?</p>
+          <div class="chips"><span class="on">Long sitting</span><span>Bad sleep</span><span>Lifting</span><span class="on">Commute</span></div>
+          <p class="muted" style="margin-top:8px">What helped?</p>
+          <div class="chips"><span class="on">Stretching</span><span>Walk</span><span>Heat</span></div>
+          <div class="c" style="padding:8px"><div class="row sp"><b>This week</b><span class="muted">▂▃▅▄▃▂▂</span></div></div>
+          <div class="btn">Save today</div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Pain diary</h3>
+        <div class="n"><b>User</b>Logs pain in about 10 seconds a day: a mood face, a 0–10 score, triggers and what helped</div>
+        <div class="n"><b>Gives</b>A weekly trend and his common triggers</div>
+        <div class="n"><b>Useful for</b>Sharing with his physio before a visit</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <span class="muted">← Tools</span>
+          <h6>Desk setup check</h6>
+          <p class="muted">Answer 6 quick yes/no questions</p>
+          <div class="c" style="padding:6px 10px">
+            <div class="row sp ynq"><span>Top of screen at eye level?</span><span class="bd no">No</span></div>
+            <div class="row sp ynq"><span>Feet flat on the floor?</span><span class="bd ok">Yes</span></div>
+            <div class="row sp ynq"><span>Lower back supported?</span><span class="bd no">No</span></div>
+            <div class="row sp ynq"><span>Elbows at 90°?</span><span class="bd ok">Yes</span></div>
+            <div class="row sp ynq"><span>Working on a laptop only?</span><span class="bd no">Yes</span></div>
+            <div class="row sp ynq"><span>Break every hour?</span><span class="bd ok">Yes</span></div>
+          </div>
+          <div class="c" style="background:#fff4d1;border-color:#f3e1a6"><b style="color:#7a5600">Desk score: 3/6</b><br><span class="muted">Raise your screen by about 10 cm and add lumbar support.</span></div>
+          <div class="btn g">Working desk ergonomic picks →</div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Desk setup check</h3>
+        <div class="n"><b>User</b>Answers 6 quick questions about his workstation</div>
+        <div class="n"><b>Gives</b>A desk score with 2 or 3 specific fixes</div>
+        <div class="n"><b>Links to</b>The Working Desk Ergonomic and Seating Posture collections in the shop</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <span class="muted">← Tools</span>
+          <h6>Pillow finder</h6>
+          <p class="muted">How do you usually sleep?</p>
+          <div class="row" style="gap:6px;margin-top:6px">
+            <div class="opt" style="flex:1;flex-direction:column;gap:2px;text-align:center;justify-content:center"><span style="font-size:18px">🛌</span>Back</div>
+            <div class="opt on" style="flex:1;flex-direction:column;gap:2px;text-align:center;justify-content:center"><span style="font-size:18px">🫃</span><b>Side</b></div>
+            <div class="opt" style="flex:1;flex-direction:column;gap:2px;text-align:center;justify-content:center"><span style="font-size:18px">🙃</span>Stomach</div>
+          </div>
+          <div class="c" style="background:#eafaf4;border-color:#bfe8d6">
+            <b>Side sleeper tip</b><br><span class="muted">Use a higher cervical pillow to keep your neck in line, and a pillow between your knees.</span>
+          </div>
+          <h6 style="font-size:13px;margin-top:12px">Ice or heat?</h6>
+          <div class="row" style="gap:6px">
+            <div class="c" style="flex:1;margin-top:4px;padding:8px;background:#e2eefc;border-color:#c7dcf6"><b>🧊 Ice</b><br><span class="muted">New injury, swelling, first 48 hrs</span></div>
+            <div class="c" style="flex:1;margin-top:4px;padding:8px;background:#ffe9df;border-color:#ffd2bf"><b>🔥 Heat</b><br><span class="muted">Stiffness, tight muscles, ongoing ache</span></div>
+          </div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Quick guides</h3>
+        <div class="n"><b>Pillow finder</b>Recommends a pillow and sleeping position based on how he sleeps. Links to Sleeping Posture products.</div>
+        <div class="n"><b>Ice or heat?</b>A simple decision guide for an injury or an ache</div>
+        <div class="n"><b>Also</b>Long drive guide (links to Driving Posture), daily 10-min routine</div>
+        <div class="n next"><b>Next</b>Read and learn</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ 5. LEARN ============ -->
+<div class="stage">
+  <div class="stage-label"><span>5</span>Reads and learns</div>
+  <div class="flow">
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <h6>Learn</h6>
+          <div class="srch">⌕ Is it okay to run with back pain?</div>
+          <div class="fl"><span class="on">For you</span><span>Back</span><span>Neck</span><span>Knee</span><span>Desk work</span></div>
+          <div class="c" style="padding:8px"><div class="row"><div class="art" style="width:52px;height:52px;flex:none">🪑</div><div><b>7 desk fixes for lower back pain</b><br><span class="muted">Reviewed by Dr. Priya Sharma ✓</span></div></div><div class="row sp" style="margin-top:6px"><span class="muted">6 min read</span><span class="muted">🔖 Saved · ↗ Share</span></div></div>
+          <div class="c" style="padding:8px"><div class="row"><div class="art" style="width:52px;height:52px;flex:none">🧘</div><div><b>5 stretches you can do at your desk</b><br><span class="muted">Reviewed by Dr. Arjun K. ✓</span></div></div><div class="row sp" style="margin-top:6px"><span class="muted">4 min read</span><span class="muted">🔖 · ↗</span></div></div>
+          <div class="c" style="padding:8px"><div class="row"><div class="art" style="width:52px;height:52px;flex:none">📱</div><div><b>Text neck: why your phone hurts</b><br><span class="muted">Reviewed by Dr. Neha M. ✓</span></div></div></div>
+        </div>
+        <div class="tab"><span><b>⌂</b>Home</span><span><b>📋</b>Assess</span><span><b>🧰</b>Tools</span><span class="on"><b>📚</b>Learn</span><span><b>⌕</b>Physios</span></div>
+      </div></div>
+      <div class="notes">
+        <h3>Content library</h3>
+        <div class="n"><b>Content</b>1,000+ articles on pain, posture, exercises and recovery</div>
+        <div class="n"><b>Browse by</b>Body area (back, neck, knee) or topic (desk work, sports, pregnancy, older adults)</div>
+        <div class="n"><b>User can</b><ul><li>Get suggestions based on his results</li><li>Search a question</li><li>Save for later</li><li>Share on WhatsApp</li><li>Tap through to the reviewing physio's profile</li></ul></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ 6. FIND A PHYSIO ============ -->
+<div class="stage">
+  <div class="stage-label"><span>6</span>Finds a physio</div>
+  <div class="flow">
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <h6>Find a physio</h6>
+          <div class="srch">⌕ Search by name or speciality</div>
+          <div class="fl"><span class="on">Bengaluru</span><span class="on">Koramangala</span><span class="on">Spine</span><span class="on">✓ Verified</span></div>
+          <div class="c"><div class="row"><div class="av" style="background:linear-gradient(135deg,#2f7de1,#6c5ce7)">AR</div><div style="flex:1"><div class="row sp"><b>Dr. Ananya Rao</b><span class="bd ok">✓</span></div><span class="muted">MPT Spine · 1.2 km</span></div></div></div>
+          <div class="c"><div class="row"><div class="av">KS</div><div style="flex:1"><div class="row sp"><b>Dr. Karthik S.</b><span class="bd ok">✓</span></div><span class="muted">BPT · Back, Neck · 2.0 km</span></div></div></div>
+          <div class="c"><div class="row"><div class="av" style="background:linear-gradient(135deg,#ff7a45,#e0a100)">MI</div><div style="flex:1"><div class="row sp"><b>Dr. Meera Iyer</b><span class="bd ok">✓</span></div><span class="muted">MPT Ortho · 3.4 km</span></div></div></div>
+        </div>
+        <div class="tab"><span><b>⌂</b>Home</span><span><b>📋</b>Assess</span><span><b>🧰</b>Tools</span><span><b>📚</b>Learn</span><span class="on"><b>⌕</b>Physios</span></div>
+      </div></div>
+      <div class="notes">
+        <h3>Search the directory</h3>
+        <div class="n"><b>Trigger</b>After 2 weeks the pain is better but not gone</div>
+        <div class="n"><b>Filters</b><ul><li>City</li><li>Area</li><li>Speciality</li><li>Verified only</li></ul></div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <span class="muted">← Physios</span>
+          <div class="row" style="margin-top:6px"><div class="av" style="width:48px;height:48px;font-size:15px;background:linear-gradient(135deg,#2f7de1,#6c5ce7)">AR</div><div><b style="font-size:13px">Dr. Ananya Rao</b><br><span class="muted">MPT (Spine) · 10 yrs</span><br><span class="bd ok">✓ Verified</span></div></div>
+          <div class="c" style="padding:8px"><b>SpineCare Physio, Koramangala</b><br><span class="muted">Mon–Sat · 8 am – 8 pm</span></div>
+          <div class="row" style="gap:6px;margin-top:8px">
+            <div class="btn" style="flex:1;margin:0">📞 Call</div><div class="btn" style="flex:1;margin:0;background:#25d366">WhatsApp</div><div class="btn g" style="flex:1;margin:0">📍 Map</div>
+          </div>
+          <div class="c" style="padding:8px"><b>Articles reviewed</b><br><span class="muted">Sciatica explained · Desk posture 101</span></div>
+          <div class="c" style="background:#eafaf4;border-color:#bfe8d6;padding:8px"><b>📋 Share my assessment</b><br><span class="muted">Send your lower back results before your visit</span></div>
+          <div class="c" style="border-style:dashed;padding:8px;color:#7a8b84">📅 Book appointment · <b>Coming soon</b></div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Physio profile</h3>
+        <div class="n"><b>Shows</b>Photo, qualifications, verified badge, specialities, clinic, hours, bio and the articles they've reviewed</div>
+        <div class="n"><b>User can</b><ul><li>Call the clinic</li><li>Message on WhatsApp</li><li>Get directions</li><li>Share his assessment result</li></ul></div>
+        <div class="n"><b>Later</b>Book in the app</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ 7. BUY ============ -->
+<div class="stage">
+  <div class="stage-label"><span>7</span>Buys what he needs</div>
+  <div class="flow">
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <span class="muted">← Your results · Muscular imbalance</span>
+          <h6>betterhood™ back-care essentials</h6>
+          <p class="muted">Picked for your back pain result</p>
+          <div class="c"><div class="prod"><div class="pi">🧰</div><div style="flex:1"><b>Back-care essentials kit</b><br><span class="muted">Products matched to your result</span></div></div></div>
+          <div class="c" style="padding:8px">
+            <b style="font-size:10px">Included FREE</b>
+            <div class="ck"><i>✓</i>Posture &amp; Support Protocols</div>
+            <div class="ck"><i>✓</i>Relief &amp; Recovery Protocols</div>
+            <div class="ck"><i>✓</i>Health Goals Monitoring</div>
+          </div>
+          <div class="c" style="background:#fff4d1;border-color:#f3e1a6;padding:8px"><b style="color:#7a5600">Extra 10% off on orders ₹2,999+</b><br><span class="muted">Code: betterhood10</span></div>
+          <div class="btn">Shop now ↗</div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <h3>Care essentials</h3>
+        <div class="n"><b>Where</b>On the assessment result</div>
+        <div class="n"><b>Per body area</b>Back-, neck-, shoulder- and knee-care essentials</div>
+        <div class="n"><b>Offer</b><ul><li>Free protocols included</li><li>Extra 10% off ₹2,999+ (code betterhood10)</li></ul></div>
+        <div class="n next"><b>Next</b>Opens shop.betterhood.in</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen"><div class="web">
+        <div class="urlbar">🔒 shop.betterhood.in</div>
+        <div class="webhead">betterhood shop</div>
+        <div class="scr">
+          <div class="c" style="background:#0f1f1a;color:#fff;border:0;padding:8px;font-size:10px;text-align:center">10% off orders above ₹2,999 · code <b>betterhood10</b></div>
+          <div class="hero-img" style="height:110px;background:linear-gradient(135deg,#ffe9df,#fff4d1)">🧰</div>
+          <h6>Back-care essentials</h6>
+          <p class="muted">For posture, relief and recovery</p>
+          <div class="btn">Add to cart</div>
+          <div class="btn g">Buy now</div>
+          <p class="muted" style="text-align:center;margin-top:8px">Secure checkout</p>
+        </div>
+      </div></div></div>
+      <div class="notes">
+        <h3>Buys on the shop</h3>
+        <div class="n"><b>User</b>Completes the purchase on shop.betterhood.in</div>
+        <div class="n"><b>System</b>Payment, delivery and orders are handled by Shopify, not the app</div>
+        <div class="n"><b>Later</b>Browse and buy inside the app</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ 8. TRACK ============ -->
+<div class="stage">
+  <div class="stage-label"><span>8</span>Tracks his progress</div>
+  <div class="flow">
+
+    <div class="step">
+      <div class="phone"><div class="screen"><div class="lockscreen">
+        <div class="clock">11:30</div><div class="date">Wednesday, 4 November</div>
+        <div class="push"><div class="ic">B</div><div><b>Time for your stretch break 🧘</b> <small>· now</small><br>You've been sitting for 30 minutes.</div></div>
+        <div class="push"><div class="ic">B</div><div><b>It's been 3 weeks</b><br>How's your back? Retake your assessment.</div></div>
+        <div class="push"><div class="ic">B</div><div><b>New for you</b><br>Desk posture guide, reviewed by a spine physio.</div></div>
+      </div></div></div>
+      <div class="notes">
+        <h3>Reminders</h3>
+        <div class="n"><b>Notifications</b><ul><li>Stretch and posture breaks</li><li>Retake the assessment after 2–4 weeks</li><li>New articles matching his pain areas</li></ul></div>
+        <div class="n"><b>Control</b>He chooses which notifications he gets</div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <h6>My progress</h6>
+          <p class="muted">Back pain level (from your assessments)</p>
+          <div class="c">
+            <svg viewBox="0 0 200 110" width="100%" aria-label="Pain score falling from 6 to 3 over three assessments">
+              <line x1="20" x2="190" y1="95" y2="95" stroke="#e4ece8"/>
+              <line x1="20" x2="190" y1="55" y2="55" stroke="#eef3f1"/>
+              <line x1="20" x2="190" y1="15" y2="15" stroke="#eef3f1"/>
+              <text x="4" y="98" font-size="8" fill="#7a8b84">0</text><text x="4" y="58" font-size="8" fill="#7a8b84">5</text><text x="0" y="18" font-size="8" fill="#7a8b84">10</text>
+              <polyline points="35,47 105,63 175,71" fill="none" stroke="#0e8a6a" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="35" cy="47" r="4" fill="#e0a100"/><circle cx="105" cy="63" r="4" fill="#14b88c"/><circle cx="175" cy="71" r="4" fill="#0e8a6a"/>
+              <text x="35" y="38" font-size="9" font-weight="700" text-anchor="middle">6</text><text x="105" y="54" font-size="9" font-weight="700" text-anchor="middle">4</text><text x="175" y="62" font-size="9" font-weight="700" text-anchor="middle">3</text>
+              <text x="35" y="107" font-size="7.5" fill="#7a8b84" text-anchor="middle">13 Oct</text><text x="105" y="107" font-size="7.5" fill="#7a8b84" text-anchor="middle">27 Oct</text><text x="175" y="107" font-size="7.5" fill="#7a8b84" text-anchor="middle">4 Nov</text>
+            </svg>
+          </div>
+          <div class="c" style="background:#eafaf4;border-color:#bfe8d6"><b style="color:#0e8a6a">↓ 50% since your first assessment</b><br><span class="muted">Keep up the stretches and breaks.</span></div>
+          <div class="c" style="padding:8px">
+            <div class="row sp"><b>Exercises this week</b><span class="muted">4 / 5 days</span></div>
+            <div class="row sp" style="margin-top:6px"><b>Saved articles</b><span class="muted">6</span></div>
+          </div>
+          <div class="btn">Retake assessment</div>
+        </div>
+        <div class="tab"><span class="on"><b>⌂</b>Home</span><span><b>📋</b>Assess</span><span><b>🧰</b>Tools</span><span><b>📚</b>Learn</span><span><b>⌕</b>Physios</span></div>
+      </div></div>
+      <div class="notes">
+        <h3>See the improvement</h3>
+        <div class="n"><b>User</b>Retakes the assessment and compares the result with last time</div>
+        <div class="n"><b>Shows</b><ul><li>Pain score trend (e.g., 6 → 3)</li><li>Assessment history</li><li>Exercise streak</li><li>Saved articles</li></ul></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ 9. ACCOUNT ============ -->
+<div class="stage">
+  <div class="stage-label"><span>9</span>Manages his account</div>
+  <div class="flow">
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <div class="notch"></div><div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="scr">
+          <h6>Account</h6>
+          <div class="row" style="margin:6px 0 4px"><div class="av">RV</div><div><b>Rahul Verma</b><br><span class="muted">+91 99xxx x2210 · Bengaluru</span></div></div>
+          <div class="c" style="padding:2px 10px">
+            <div class="setrow"><b>Edit profile and pain areas</b><span>›</span></div>
+            <div class="setrow"><b>Stretch reminders</b><div class="tgl"></div></div>
+            <div class="setrow"><b>New article alerts</b><div class="tgl"></div></div>
+            <div class="setrow"><b>Offers and promotions</b><div class="tgl off"></div></div>
+          </div>
+          <div class="c" style="padding:2px 10px">
+            <div class="setrow"><b>My data</b><span>›</span></div>
+            <div class="setrow"><b>Delete saved assessments</b><span>›</span></div>
+            <div class="setrow"><b>Privacy policy</b><span>›</span></div>
+          </div>
+          <div class="btn g" style="color:#c03535">Delete my account</div>
+        </div>
+        <div class="tab"><span><b>⌂</b>Home</span><span><b>📋</b>Assess</span><span><b>🧰</b>Tools</span><span><b>📚</b>Learn</span><span class="on"><b>◉</b>Me</span></div>
+      </div></div>
+      <div class="notes">
+        <h3>Account and privacy</h3>
+        <div class="n"><b>User can</b><ul><li>Edit his profile and pain areas</li><li>Choose notifications</li><li>See the data held about him</li><li>Delete saved assessments</li><li>Delete his account and data</li></ul></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ LATER ============ -->
+<div class="stage">
+  <div class="stage-label later"><span>+</span>Coming later</div>
+  <div class="later-card">
+    <div>Book appointments with physios in the app</div>
+    <div>Online video consultations</div>
+    <div>Send a question to a physio</div>
+    <div>Appointment reminders</div>
+    <div>Exercise plans shared by his physio</div>
+    <div>Browse and buy products in the app</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  try{var t=localStorage.getItem('bh-theme'); if(t) root.setAttribute('data-theme',t);}catch(e){}
+  document.getElementById('themeBtn').addEventListener('click',function(){
+    var cur=root.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+    var next=cur==='dark'?'light':'dark';
+    root.setAttribute('data-theme',next);
+    try{localStorage.setItem('bh-theme',next);}catch(e){}
+  });
+})();
+</script>
+</body>
+</html>
