@@ -1,0 +1,965 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Keyframe Kit</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: edit bay. A timeline-ruler masthead, a short "how it works" strip, then a two-pane library: snippet list | live configurator with code. */
+:root {
+  --bg: #EDEFF3;
+  --surface: #FFFFFF;
+  --sunk: #E2E6EC;
+  --ink: #151922;
+  --muted: #586172;
+  --line: #D2D7DF;
+  --accent: #0B7271;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #D8EEED;
+  --key: #D9940F;
+  --key-soft: #FBEFD3;
+  --code-bg: #1A1E26;
+  --code-ink: #DCE1EA;
+  --code-dim: #7F8899;
+  --code-str: #A4D9A8;
+  --code-num: #F2C46B;
+  --code-kw: #8EC5FF;
+  --code-hi: #3B3220;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Instrument Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101318; --surface: #171B22; --sunk: #0C0F13; --ink: #E6E9EF; --muted: #98A1B3;
+    --line: #2A303A; --accent: #3CC4BF; --accent-ink: #052120; --accent-soft: #123332;
+    --key: #F2BA45; --key-soft: #382D15; --code-bg: #0B0E12; --code-hi: #3A2F17;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101318; --surface: #171B22; --sunk: #0C0F13; --ink: #E6E9EF; --muted: #98A1B3;
+  --line: #2A303A; --accent: #3CC4BF; --accent-ink: #052120; --accent-soft: #123332;
+  --key: #F2BA45; --key-soft: #382D15; --code-bg: #0B0E12; --code-hi: #3A2F17;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 44px; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h2 { font-size: 1.55rem; font-weight: 700; }
+p { margin: 0; }
+a { color: var(--accent); }
+code, kbd { font-family: var(--f-mono); font-size: 0.86em; }
+kbd { background: var(--sunk); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 0 5px; }
+.eyebrow { font-family: var(--f-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Masthead */
+.mast { display: grid; gap: 18px; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.diamond { width: 14px; height: 14px; transform: rotate(45deg); background: var(--key); border-radius: 2px; flex: none; }
+.mast h1 { font-size: clamp(2.4rem, 6vw, 4rem); font-weight: 800; line-height: 1; }
+.lede { font-size: 1.12rem; max-width: 62ch; color: var(--muted); }
+.lede strong { color: var(--ink); font-weight: 600; }
+
+.timeline { position: relative; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); overflow: hidden; font-family: var(--f-mono); font-size: 0.7rem; color: var(--muted); }
+.ruler { display: flex; justify-content: space-between; padding: 4px 10px 0 92px; height: 26px; border-bottom: 1px solid var(--line);
+  background-image: repeating-linear-gradient(to right, var(--line) 0 1px, transparent 1px 2.5%); background-position: 92px 100%; background-size: calc(100% - 92px) 7px; background-repeat: no-repeat; }
+.track { display: flex; align-items: center; height: 28px; border-bottom: 1px solid var(--line); }
+.track:last-child { border-bottom: 0; }
+.track-name { width: 92px; padding-left: 10px; flex: none; }
+.lane { position: relative; flex: 1; height: 100%; }
+.lane .bar { position: absolute; top: 8px; bottom: 8px; border-radius: 3px; background: var(--accent-soft); }
+.lane .k { position: absolute; top: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; transform: rotate(45deg); background: var(--key); border-radius: 1px; }
+.playhead { position: absolute; top: 0; bottom: 0; left: 92px; width: 2px; background: var(--accent); animation: play 9s linear infinite; }
+.playhead::before { content: ""; position: absolute; top: 0; left: -5px; border: 6px solid transparent; border-top: 7px solid var(--accent); }
+@keyframes play { from { transform: translateX(0); } to { transform: translateX(calc(100vw)); } }
+@media (min-width: 1180px) { @keyframes play { from { transform: translateX(0); } to { transform: translateX(1086px); } } }
+@media (prefers-reduced-motion: reduce) { .playhead { animation: none; transform: translateX(260px); } }
+
+/* How it works */
+.how { display: grid; gap: 18px; }
+.flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 6px; align-content: start; position: relative; }
+.step .no { font-family: var(--f-mono); font-size: 0.75rem; color: var(--accent); font-weight: 600; }
+.step h3 { font-size: 1.08rem; font-weight: 700; }
+.step p { color: var(--muted); font-size: 0.94rem; }
+.note { display: flex; gap: 12px; align-items: flex-start; background: var(--key-soft); border-radius: var(--r); padding: 14px 16px; max-width: 80ch; }
+.note .diamond { margin-top: 6px; width: 10px; height: 10px; }
+
+/* Setup */
+.setup { display: grid; gap: 18px; }
+.setup-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; counter-reset: s; }
+.setup-list li { counter-increment: s; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px 16px 58px; position: relative; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.setup-list li::before { content: counter(s); position: absolute; left: 16px; top: 14px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--accent-ink); font-family: var(--f-mono); font-weight: 600; font-size: 0.85rem; }
+.setup-list h3 { font-size: 1.02rem; font-weight: 700; font-family: var(--f-body); }
+.setup-list p { color: var(--muted); font-size: 0.93rem; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+details.helper summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 0.92rem; }
+details.helper[open] summary { margin-bottom: 8px; }
+
+/* Buttons */
+.btn { font: inherit; font-weight: 600; font-size: 0.9rem; border-radius: 8px; padding: 8px 14px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.small { padding: 5px 10px; font-size: 0.82rem; }
+
+/* Library */
+.lib-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px; }
+.search { position: relative; }
+.search input { font: inherit; width: min(300px, 100%); padding: 9px 12px 9px 34px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.search svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; stroke: var(--muted); fill: none; }
+.lib { display: grid; grid-template-columns: 270px minmax(0, 1fr); gap: 18px; align-items: start; margin-top: 16px; }
+.list { display: grid; gap: 14px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+.group { display: grid; gap: 2px; }
+.group .eyebrow { padding: 0 10px 4px; }
+.item { font: inherit; text-align: left; background: none; border: 0; border-radius: 8px; padding: 8px 10px; color: var(--ink); cursor: pointer; display: grid; gap: 1px; }
+.item:hover { background: var(--sunk); }
+.item[aria-current="true"] { background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+.item[aria-current="true"] .item-t { color: var(--accent); }
+.item-t { font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+.item-d { font-size: 0.8rem; color: var(--muted); }
+.item .mini { width: 7px; height: 7px; transform: rotate(45deg); background: var(--key); border-radius: 1px; }
+.empty { color: var(--muted); padding: 10px; font-size: 0.9rem; }
+
+.detail { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; min-width: 0; }
+.d-head { padding: 22px 24px 18px; display: grid; gap: 10px; border-bottom: 1px solid var(--line); }
+.d-head h3 { font-size: 1.75rem; font-weight: 800; }
+.d-head .what { max-width: 66ch; color: var(--muted); font-size: 1rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 0.78rem; font-weight: 600; padding: 3px 9px; border-radius: 99px; background: var(--sunk); color: var(--ink); display: inline-flex; align-items: center; gap: 6px; }
+.chip.file { font-family: var(--f-mono); font-weight: 400; background: var(--accent-soft); }
+
+.d-body { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); }
+.knobs { padding: 20px 24px; display: grid; gap: 18px; align-content: start; border-right: 1px solid var(--line); }
+.knobs-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.knobs-head h4, .outcome h4 { margin: 0; font-family: var(--f-body); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-weight: 600; }
+.knob { display: grid; gap: 7px; }
+.knob-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.knob-top label { font-weight: 600; display: flex; align-items: center; gap: 9px; }
+.knob-top label::before { content: ""; width: 9px; height: 9px; transform: rotate(45deg); border: 1.5px solid var(--muted); border-radius: 1px; flex: none; }
+.knob.is-changed .knob-top label::before { background: var(--key); border-color: var(--key); }
+.was { font-size: 0.76rem; color: var(--key); font-weight: 600; display: none; }
+.knob.is-changed .was { display: inline; }
+.help { font-size: 0.85rem; color: var(--muted); }
+.num { display: flex; align-items: center; gap: 10px; }
+.num input[type="range"] { flex: 1; accent-color: var(--accent); min-width: 0; }
+.num input[type="number"], .knob input[type="text"] { font: inherit; font-family: var(--f-mono); font-size: 0.9rem; padding: 7px 9px; border-radius: 7px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+.num input[type="number"] { width: 84px; }
+.knob input[type="text"] { width: 100%; }
+.unit { font-size: 0.82rem; color: var(--muted); min-width: 3.5em; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { font: inherit; font-size: 0.86rem; padding: 6px 11px; border-radius: 7px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer; }
+.seg button[aria-checked="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.sw { display: flex; align-items: center; gap: 10px; }
+.switch { width: 42px; height: 24px; border-radius: 99px; border: 0; background: var(--line); position: relative; cursor: pointer; padding: 0; flex: none; }
+.switch span { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--surface); transition: transform .15s; box-shadow: 0 1px 2px rgba(0,0,0,.25); }
+.switch[aria-checked="true"] { background: var(--accent); }
+.switch[aria-checked="true"] span { transform: translateX(18px); }
+.sw-lab { font-size: 0.9rem; }
+.color { display: flex; align-items: center; gap: 10px; }
+.color input { width: 44px; height: 32px; border: 1px solid var(--line); border-radius: 7px; background: none; padding: 2px; cursor: pointer; }
+
+.outcome { padding: 20px 24px; display: grid; gap: 14px; align-content: start; background: linear-gradient(var(--bg), var(--bg)) padding-box; }
+.happen { font-size: 1.04rem; line-height: 1.6; }
+.happen b { background: var(--key-soft); padding: 0 4px; border-radius: 4px; font-weight: 600; }
+.changed-sum { font-size: 0.85rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.changed-sum .mini { width: 8px; height: 8px; transform: rotate(45deg); background: var(--key); border-radius: 1px; }
+.facts { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; font-size: 0.88rem; }
+.facts li { display: grid; grid-template-columns: 74px 1fr; gap: 10px; }
+.facts .lab { font-family: var(--f-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding-top: 2px; }
+
+.codebox { border-top: 1px solid var(--line); }
+.code-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 24px; }
+.tabs { display: flex; gap: 4px; background: var(--sunk); padding: 3px; border-radius: 9px; }
+.tabs button { font: inherit; font-size: 0.85rem; font-weight: 600; border: 0; background: none; color: var(--muted); padding: 6px 12px; border-radius: 7px; cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.run-line { padding: 0 24px 14px; font-size: 0.88rem; color: var(--muted); }
+.run-line code { color: var(--ink); background: var(--sunk); padding: 2px 6px; border-radius: 5px; }
+pre.code { margin: 0; background: var(--code-bg); color: var(--code-ink); font-family: var(--f-mono); font-size: 0.8rem; line-height: 1.65; padding: 18px 0; overflow-x: auto; max-height: 560px; tab-size: 4; }
+pre.code .ln { display: block; padding: 0 24px; white-space: pre; }
+pre.code .ln.set { background: rgba(255,255,255,0.03); }
+pre.code .ln.set.on { background: var(--code-hi); }
+.t-c { color: var(--code-dim); font-style: italic; }
+.t-s { color: var(--code-str); }
+.t-n { color: var(--code-num); }
+.t-k { color: var(--code-kw); }
+.t-v { color: var(--code-num); font-weight: 600; }
+.ln.on .t-v { color: #FFD27A; text-decoration: underline; text-decoration-color: #F2BA45; text-underline-offset: 3px; }
+pre.helper-code { border-radius: 8px; max-height: 340px; }
+
+/* Troubleshooting */
+.trouble { display: grid; gap: 14px; }
+.faq { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.faq div { border-top: 2px solid var(--line); padding-top: 10px; display: grid; gap: 4px; }
+.faq h3 { font-family: var(--f-body); font-size: 0.98rem; font-weight: 700; }
+.faq p { color: var(--muted); font-size: 0.92rem; }
+footer { color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--line); padding-top: 18px; }
+
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 99px; font-weight: 600; font-size: 0.9rem; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 20; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@media (max-width: 900px) {
+  .lib { grid-template-columns: minmax(0, 1fr); }
+  .list { position: static; display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; }
+  .group { display: contents; }
+  .group .eyebrow { display: none; }
+  .item { flex: none; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+  .item-d { display: none; }
+  .item[aria-current="true"] { box-shadow: inset 0 0 0 2px var(--accent); }
+}
+@media (max-width: 760px) {
+  .flow, .setup-list, .faq { grid-template-columns: minmax(0, 1fr); }
+  .d-body { grid-template-columns: minmax(0, 1fr); }
+  .knobs { border-right: 0; border-bottom: 1px solid var(--line); }
+  .d-head, .knobs, .outcome { padding-left: 18px; padding-right: 18px; }
+  .code-bar, .run-line { padding-left: 18px; padding-right: 18px; }
+  pre.code .ln { padding: 0 18px; }
+  .ruler span:nth-child(even) { visibility: hidden; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="mast">
+    <div class="brand"><span class="diamond"></span><span class="eyebrow">Python snippets for After Effects</span></div>
+    <h1>Keyframe Kit</h1>
+    <p class="lede">Ten ready-to-run snippets for the After Effects chores you repeat every day. <strong>Pick one, change the settings in plain English, read what will happen, then copy and run it.</strong> No coding knowledge needed.</p>
+    <div class="timeline" aria-hidden="true">
+      <div class="ruler"><span>0:00:00:00</span><span>0:00:02:00</span><span>0:00:04:00</span><span>0:00:06:00</span><span>0:00:08:00</span></div>
+      <div class="track"><span class="track-name">Opacity</span><div class="lane"><div class="bar" style="left:4%;right:38%"></div><i class="k" style="left:4%"></i><i class="k" style="left:12%"></i><i class="k" style="left:54%"></i><i class="k" style="left:62%"></i></div></div>
+      <div class="track"><span class="track-name">Position</span><div class="lane"><div class="bar" style="left:14%;right:16%"></div><i class="k" style="left:14%"></i><i class="k" style="left:40%"></i><i class="k" style="left:84%"></i></div></div>
+      <div class="track"><span class="track-name">Text</span><div class="lane"><div class="bar" style="left:26%;right:4%"></div><i class="k" style="left:26%"></i><i class="k" style="left:96%"></i></div></div>
+      <div class="playhead"></div>
+    </div>
+  </header>
+
+  <section class="how" aria-labelledby="how-h">
+    <h2 id="how-h">How it works</h2>
+    <div class="flow">
+      <div class="step"><span class="no">STEP 1</span><h3>You run a Python file</h3><p>Each snippet is a small text file. The settings you want to change sit at the top, clearly labelled.</p></div>
+      <div class="step"><span class="no">STEP 2</span><h3>It writes an After Effects script</h3><p>Python turns your settings into the instructions After Effects understands, and hands them over.</p></div>
+      <div class="step"><span class="no">STEP 3</span><h3>After Effects does the work</h3><p>The change lands in your open project. One <kbd>Ctrl</kbd>+<kbd>Z</kbd> (Mac: <kbd>Cmd</kbd>+<kbd>Z</kbd>) undoes the whole thing.</p></div>
+    </div>
+    <div class="note"><span class="diamond"></span><p><strong>Good to know:</strong> After Effects doesn't run Python by itself. Inside, it only reads JavaScript. These Python files work like a remote control: they write the JavaScript for you and send it to After Effects. If you'd rather skip Python, every snippet also has a plain <code>.jsx</code> version you can run from <em>File › Scripts › Run Script File…</em></p></div>
+  </section>
+
+  <section class="setup" aria-labelledby="setup-h">
+    <h2 id="setup-h">Set up once (about 5 minutes)</h2>
+    <ol class="setup-list">
+      <li>
+        <h3>Install Python</h3>
+        <p>Download it free from <a href="https://www.python.org/downloads/" target="_blank" rel="noopener">python.org/downloads</a>. On Windows, tick <strong>“Add python.exe to PATH”</strong> on the first install screen.</p>
+      </li>
+      <li>
+        <h3>Save the helper file</h3>
+        <p>Make a folder, for example <code>Desktop/KeyframeKit</code>. Copy the helper below, paste it into Notepad (Mac: TextEdit, then <em>Format › Make Plain Text</em>) and save it in that folder as <code>ae_bridge.py</code>. In Notepad, set “Save as type” to <em>All files</em>.</p>
+        <div class="row"><button class="btn primary small" type="button" id="copy-helper">Copy helper file</button></div>
+        <details class="helper"><summary>Show the helper code</summary><pre class="code helper-code" id="helper-code"></pre></details>
+      </li>
+      <li>
+        <h3>Allow scripts in After Effects</h3>
+        <p>Open <em>Edit › Preferences › Scripting &amp; Expressions</em> (Mac: <em>After Effects › Settings › Scripting &amp; Expressions</em>) and tick <strong>“Allow Scripts to Write Files and Access Network”</strong>. Restart After Effects.</p>
+      </li>
+      <li>
+        <h3>Run a snippet</h3>
+        <p>Save any snippet below into the same folder. Open After Effects with your project. Then open a terminal in the folder: on Windows, click the folder's address bar, type <code>cmd</code> and press Enter; on Mac, right-click the folder and choose <em>New Terminal at Folder</em>. Type the command shown under the snippet and press Enter.</p>
+      </li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="lib-h">
+    <div class="lib-head">
+      <div>
+        <h2 id="lib-h">Snippet library</h2>
+        <p class="help" style="margin-top:4px">A filled <span class="diamond" style="display:inline-block;width:8px;height:8px;margin:0 3px;vertical-align:1px"></span> means you changed that setting from its default, just like a keyframe being set.</p>
+      </div>
+      <label class="search" for="q"><svg viewBox="0 0 24 24" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Search: fade, rename, render…" autocomplete="off"></label>
+    </div>
+    <div class="lib">
+      <nav class="list" id="list" aria-label="Snippets"></nav>
+      <article class="detail" id="detail" aria-live="polite"></article>
+    </div>
+  </section>
+
+  <section class="trouble" aria-labelledby="tr-h">
+    <h2 id="tr-h">If something goes wrong</h2>
+    <div class="faq">
+      <div><h3>“python is not recognized”</h3><p>Python isn't on your PATH. Run the Python installer again, choose <em>Modify</em>, and tick “Add Python to environment variables”. On Mac, type <code>python3</code> instead of <code>python</code>.</p></div>
+      <div><h3>“Could not find After Effects”</h3><p>After Effects is installed somewhere unusual. Open <code>ae_bridge.py</code> and paste the full path to <code>AfterFX.exe</code> (Mac: the app) between the quotes on the <code>AE_PATH</code> line.</p></div>
+      <div><h3>“Open a composition first”</h3><p>The snippet needs a comp open in the viewer. Double-click a comp in the Project panel, select the layers you want, and run it again.</p></div>
+      <div><h3>It did something I didn't want</h3><p>Press <kbd>Ctrl</kbd>+<kbd>Z</kbd> (Mac: <kbd>Cmd</kbd>+<kbd>Z</kbd>) once in After Effects. Each snippet is a single undo step named “Keyframe Kit”. Saving a new version is the one exception: the new file stays on disk.</p></div>
+    </div>
+  </section>
+
+  <footer>Written for After Effects 2022 and newer on Windows and Mac. Your settings are remembered in this browser only. Try snippets on a copy of an important project first.</footer>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const PRELUDE = String.raw`function needComp() {
+    var c = app.project.activeItem;
+    if (!(c instanceof CompItem)) { alert("Open a composition first, then run the snippet again."); return null; }
+    return c;
+}
+function needLayers(c) {
+    var list = [];
+    for (var i = 0; i < c.selectedLayers.length; i++) list.push(c.selectedLayers[i]);
+    if (!list.length) { alert("Select at least one layer first, then run the snippet again."); return null; }
+    list.sort(function (a, b) { return a.index - b.index; });
+    return list;
+}
+function pad(n, digits) { var s = String(n); while (s.length < digits) s = "0" + s; return s; }`;
+
+const HELPER = String.raw`"""
+ae_bridge.py  ·  Keyframe Kit helper
+Keep this file in the same folder as your snippets. You never need to edit it,
+unless After Effects is installed somewhere unusual (see AE_PATH below).
+"""
+import glob, json, os, subprocess, sys, tempfile
+
+AE_PATH = ""   # leave empty to find After Effects automatically
+
+PRELUDE = r"""
+${PRELUDE}
+"""
+
+
+def find_after_effects():
+    if AE_PATH:
+        return AE_PATH
+    if sys.platform == "win32":
+        pattern = r"C:\Program Files\Adobe\Adobe After Effects *\Support Files\AfterFX.exe"
+    else:
+        pattern = "/Applications/Adobe After Effects */Adobe After Effects *.app"
+    found = sorted(glob.glob(pattern))
+    if not found:
+        sys.exit("Could not find After Effects. Type its location into AE_PATH in ae_bridge.py.")
+    return found[-1]   # the newest installed version
+
+
+def run_in_ae(snippet, **settings):
+    script = "\n".join([
+        'app.beginUndoGroup("Keyframe Kit");',
+        "var S = " + json.dumps(settings) + ";",
+        PRELUDE,
+        "try {",
+        "(function () {",
+        snippet,
+        "})();",
+        "} catch (e) {",
+        '    alert("The snippet stopped: " + e.toString());',
+        "}",
+        "app.endUndoGroup();",
+    ])
+    path = os.path.join(tempfile.gettempdir(), "keyframe_kit.jsx")
+    with open(path, "w", encoding="utf-8-sig") as f:
+        f.write(script)
+
+    ae = find_after_effects()
+    if sys.platform == "win32":
+        subprocess.run([ae, "-r", path])
+    else:
+        app_name = os.path.basename(ae).replace(".app", "")
+        subprocess.run(["osascript", "-e", f'tell application "{app_name}" to DoScriptFile "{path}"'])
+    print("Sent to After Effects.")
+`;
+
+const SNIPPETS = [
+{
+  id: "fade", cat: "Animation", file: "fade_layers.py", title: "Fade in & out",
+  short: "Opacity fades on selected layers",
+  what: "Adds a fade-up at the start and a fade-down at the end of every selected layer. Saves you setting four opacity keyframes by hand, layer after layer.",
+  needs: ["A comp open", "Layers selected"],
+  knobs: [
+    { js: "fadeIn", py: "FADE_IN", label: "Fade-in length", type: "number", def: 0.5, min: 0, max: 5, step: 0.1, unit: "seconds", help: "How long each layer takes to appear. 0 means no fade-in.", c: "seconds at the start (0 = none)" },
+    { js: "fadeOut", py: "FADE_OUT", label: "Fade-out length", type: "number", def: 0.5, min: 0, max: 5, step: 0.1, unit: "seconds", help: "How long each layer takes to disappear. 0 means no fade-out.", c: "seconds at the end (0 = none)" },
+    { js: "easy", py: "SMOOTH", label: "Smooth motion", type: "toggle", def: true, on: "On: soft Easy Ease", off: "Off: straight, linear fade", help: "Easy Ease makes the fade start and finish gently.", c: "True = Easy Ease, False = linear" }
+  ],
+  happen: v => {
+    const p = [];
+    if (v.fadeIn > 0) p.push(`fade up from 0% to 100% over its first <b>${f(v.fadeIn)} s</b>`);
+    if (v.fadeOut > 0) p.push(`fade back down to 0% over its last <b>${f(v.fadeOut)} s</b>`);
+    if (!p.length) return "Both lengths are 0, so nothing will change. Set at least one of them above 0.";
+    return `Each selected layer will ${p.join(" and ")}. ${v.easy ? "The fades <b>ease in and out</b>, so they feel soft." : "The fades are <b>linear</b>, so they start and stop abruptly."} The timing follows each layer's own start and end, not the comp's.`;
+  },
+  jsx: String.raw`var comp = needComp(); if (!comp) return;
+var layers = needLayers(comp); if (!layers) return;
+for (var i = 0; i < layers.length; i++) {
+    var opacity = layers[i].property("ADBE Transform Group").property("ADBE Opacity");
+    var start = layers[i].inPoint, end = layers[i].outPoint;
+    if (S.fadeIn > 0) {
+        opacity.setValueAtTime(start, 0);
+        opacity.setValueAtTime(start + S.fadeIn, 100);
+    }
+    if (S.fadeOut > 0) {
+        opacity.setValueAtTime(end - S.fadeOut, 100);
+        opacity.setValueAtTime(end, 0);
+    }
+    if (S.easy) {
+        var ease = new KeyframeEase(0, 33.33);
+        for (var k = 1; k <= opacity.numKeys; k++) opacity.setTemporalEaseAtIndex(k, [ease], [ease]);
+    }
+}`
+},
+{
+  id: "wiggle", cat: "Animation", file: "wiggle.py", title: "Add or remove wiggle",
+  short: "Random shake or drift, no keyframes",
+  what: "Puts a wiggle expression on Position, Rotation, Scale or Opacity of the selected layers, for handheld-camera shake, flicker or a gentle float. Can also take it off again.",
+  needs: ["A comp open", "Layers selected"],
+  knobs: [
+    { js: "mode", py: "ACTION", label: "Action", type: "select", def: "add", options: [["add", "Add wiggle"], ["remove", "Remove it"]], help: "Remove clears any expression on that property.", c: '"add" or "remove"' },
+    { js: "what", py: "PROPERTY", label: "Which property", type: "select", def: "Position", options: [["Position", "Position"], ["Rotation", "Rotation"], ["Scale", "Scale"], ["Opacity", "Opacity"]], help: "The property that will move randomly.", c: "Position, Rotation, Scale or Opacity" },
+    { js: "perSecond", py: "WIGGLES_PER_SECOND", label: "Speed", type: "number", def: 2, min: 0.5, max: 20, step: 0.5, unit: "per second", help: "How many times per second it changes direction. 1–3 feels calm, 10+ feels jittery.", c: "how often it changes direction" },
+    { js: "amount", py: "AMOUNT", label: "Strength", type: "number", def: 30, min: 1, max: 200, step: 1, unit: "", unitFn: v => ({ Position: "pixels", Rotation: "degrees", Scale: "%", Opacity: "%" })[v.what], help: "How far it can move away from its normal value.", c: "how far it can drift" }
+  ],
+  happen: v => {
+    const unit = ({ Position: "pixels", Rotation: "degrees", Scale: "%", Opacity: "%" })[v.what];
+    if (v.mode === "remove") return `Any expression on <b>${v.what}</b> of each selected layer will be cleared. Keyframes you set yourself stay exactly as they are.`;
+    const feel = v.perSecond <= 3 ? "a calm, floating drift" : v.perSecond <= 8 ? "a lively handheld shake" : "a fast, nervous jitter";
+    return `<b>${v.what}</b> on each selected layer will move randomly about <b>${f(v.perSecond)} times a second</b>, up to <b>${f(v.amount)} ${unit}</b> either way. Expect ${feel}. It keeps going for the whole layer with no keyframes to manage.`;
+  },
+  jsx: String.raw`var comp = needComp(); if (!comp) return;
+var layers = needLayers(comp); if (!layers) return;
+var ids = { "Position": "ADBE Position", "Rotation": "ADBE Rotate Z", "Scale": "ADBE Scale", "Opacity": "ADBE Opacity" };
+var skipped = 0;
+for (var i = 0; i < layers.length; i++) {
+    var prop = layers[i].property("ADBE Transform Group").property(ids[S.what]);
+    if (!prop || !prop.canSetExpression) { skipped++; continue; }
+    prop.expression = (S.mode === "add") ? "wiggle(" + S.perSecond + ", " + S.amount + ")" : "";
+}
+if (skipped) alert(skipped + " layer(s) were skipped because " + S.what + " can't take an expression there.");`
+},
+{
+  id: "stagger", cat: "Timing", file: "stagger_layers.py", title: "Stagger layers",
+  short: "Cascade layers one after another",
+  what: "Lines up the selected layers like stairs so each one starts a few frames after the one before. Ideal for lists, titles and logo builds.",
+  needs: ["A comp open", "Two or more layers selected"],
+  knobs: [
+    { js: "gapFrames", py: "GAP_FRAMES", label: "Gap between layers", type: "number", def: 4, min: 0, max: 60, step: 1, unit: "frames", help: "At 25 fps, 25 frames is one second. 3–6 frames feels snappy.", c: "frames between each layer's start" },
+    { js: "order", py: "ORDER", label: "Who goes first", type: "select", def: "top-first", options: [["top-first", "Top layer first"], ["bottom-first", "Bottom layer first"]], help: "Based on the layer stack in the timeline, not the order you clicked.", c: '"top-first" or "bottom-first"' }
+  ],
+  happen: v => {
+    if (v.gapFrames === 0) return "With a gap of 0, every selected layer will start at the same moment as the first one. Handy for lining things up again.";
+    return `The ${v.order === "top-first" ? "<b>top</b>" : "<b>bottom</b>"} selected layer stays where it is. Every next layer ${v.order === "top-first" ? "down" : "up"} the stack starts <b>${v.gapFrames} frames</b> later than the one before (about ${f(v.gapFrames / 25)} s at 25 fps). Layers keep their length and their keyframes travel with them.`;
+  },
+  jsx: String.raw`var comp = needComp(); if (!comp) return;
+var layers = needLayers(comp); if (!layers) return;
+if (S.order === "bottom-first") layers.reverse();
+var gap = S.gapFrames * comp.frameDuration;
+var first = layers[0].inPoint;
+for (var i = 1; i < layers.length; i++) {
+    layers[i].startTime += (first + i * gap) - layers[i].inPoint;
+}`
+},
+{
+  id: "rename", cat: "Layers", file: "rename_layers.py", title: "Rename layers in order",
+  short: "Shot_01, Shot_02, Shot_03…",
+  what: "Gives the selected layers tidy, numbered names from top to bottom, so your timeline reads clearly and your teammates can find things.",
+  needs: ["A comp open", "Layers selected"],
+  knobs: [
+    { js: "prefix", py: "NAME", label: "Name before the number", type: "text", def: "Shot_", help: "Include a space or underscore at the end if you want one.", c: "text before the number" },
+    { js: "startAt", py: "START_AT", label: "First number", type: "number", def: 1, min: 0, max: 999, step: 1, unit: "", help: "The number the top layer gets.", c: "number for the top layer" },
+    { js: "digits", py: "DIGITS", label: "Number length", type: "number", def: 2, min: 1, max: 5, step: 1, unit: "digits", help: "2 gives 01, 02… and 3 gives 001, 002…", c: "2 = 01, 3 = 001" }
+  ],
+  happen: v => {
+    const ex = [0, 1, 2].map(i => esc(v.prefix + padN(v.startAt + i, v.digits)));
+    return `Selected layers will be renamed top to bottom: <b>${ex[0]}</b>, <b>${ex[1]}</b>, <b>${ex[2]}</b> and so on. Only the layer names change. The source footage and comps in the Project panel keep their names.`;
+  },
+  jsx: String.raw`var comp = needComp(); if (!comp) return;
+var layers = needLayers(comp); if (!layers) return;
+for (var i = 0; i < layers.length; i++) {
+    layers[i].name = S.prefix + pad(S.startAt + i, S.digits);
+}`
+},
+{
+  id: "anchor", cat: "Layers", file: "center_anchor.py", title: "Move anchor point",
+  short: "Center it without the layer jumping",
+  what: "Moves the anchor point of each selected layer to its middle (or a corner) and shifts the position to match, so nothing moves on screen. Rotations and scales then pivot where you expect.",
+  needs: ["A comp open", "Layers selected"],
+  knobs: [
+    { js: "anchor", py: "ANCHOR", label: "Put the anchor at", type: "select", def: "0.5,0.5", options: [["0.5,0.5", "Center"], ["0,0", "Top left"], ["0.5,0", "Top center"], ["0.5,1", "Bottom center"], ["1,1", "Bottom right"]], help: "Measured from what you can see in the layer at the current time.", c: "x,y: 0 = left/top, 1 = right/bottom" }
+  ],
+  happen: v => {
+    const name = ({ "0.5,0.5": "center", "0,0": "top-left corner", "0.5,0": "top edge, centered", "0.5,1": "bottom edge, centered", "1,1": "bottom-right corner" })[v.anchor];
+    return `Each selected layer's anchor point moves to its <b>${name}</b>, and its position is adjusted so it <b>stays put on screen</b>. Layers with keyframed anchor or position, or with separated dimensions, are skipped so their animation isn't broken.`;
+  },
+  jsx: String.raw`var comp = needComp(); if (!comp) return;
+var layers = needLayers(comp); if (!layers) return;
+var fx = parseFloat(S.anchor.split(",")[0]), fy = parseFloat(S.anchor.split(",")[1]);
+var skipped = 0;
+for (var i = 0; i < layers.length; i++) {
+    var layer = layers[i];
+    if (!layer.sourceRectAtTime) { skipped++; continue; }
+    var t = layer.property("ADBE Transform Group");
+    var ap = t.property("ADBE Anchor Point"), pos = t.property("ADBE Position");
+    if (ap.numKeys || pos.numKeys || pos.dimensionsSeparated) { skipped++; continue; }
+    var r = layer.sourceRectAtTime(comp.time, false);
+    var a = ap.value, p = pos.value;
+    var dx = r.left + r.width * fx - a[0], dy = r.top + r.height * fy - a[1];
+    var sc = t.property("ADBE Scale").value;
+    var rad = t.property("ADBE Rotate Z").value * Math.PI / 180;
+    var sx = dx * sc[0] / 100, sy = dy * sc[1] / 100;
+    a[0] += dx; a[1] += dy;
+    p[0] += sx * Math.cos(rad) - sy * Math.sin(rad);
+    p[1] += sx * Math.sin(rad) + sy * Math.cos(rad);
+    ap.setValue(a);
+    pos.setValue(p);
+}
+if (skipped) alert(skipped + " layer(s) were skipped (camera, light, or animated anchor/position).");`
+},
+{
+  id: "replace", cat: "Text", file: "find_replace_text.py", title: "Find & replace text",
+  short: "Update wording across every comp",
+  what: "Searches every text layer and swaps one word or phrase for another. Perfect for changing a date, price, name or campaign line in dozens of comps at once.",
+  needs: ["A project open"],
+  knobs: [
+    { js: "find", py: "FIND", label: "Find this", type: "text", def: "Summer Sale", help: "Matches exact spelling and capital letters.", c: "exact text to look for" },
+    { js: "replaceWith", py: "REPLACE_WITH", label: "Replace with", type: "text", def: "Autumn Sale", help: "Leave empty to delete the found text.", c: "new text" },
+    { js: "scope", py: "WHERE", label: "Where to look", type: "select", def: "project", options: [["project", "Every comp in the project"], ["comp", "Only the open comp"]], help: "Searching the whole project is the most common choice.", c: '"project" or "comp"' }
+  ],
+  happen: v => {
+    if (!v.find) return "Type something in “Find this” first. With nothing to find, the snippet will stop and tell you.";
+    return `Every text layer in ${v.scope === "project" ? "<b>every comp of the project</b>" : "<b>the open comp</b>"} that contains <b>${esc(v.find)}</b> will read <b>${v.replaceWith ? esc(v.replaceWith) : "(nothing)"}</b> there instead. Fonts, sizes and colors stay the same. After Effects then tells you how many layers changed. Layers with keyframed text or that are locked are left alone.`;
+  },
+  jsx: String.raw`if (!S.find) { alert("Type something to find first."); return; }
+var comps = [];
+if (S.scope === "comp") {
+    var c = needComp(); if (!c) return;
+    comps.push(c);
+} else {
+    for (var i = 1; i <= app.project.numItems; i++) {
+        if (app.project.item(i) instanceof CompItem) comps.push(app.project.item(i));
+    }
+}
+var changed = 0;
+for (var n = 0; n < comps.length; n++) {
+    for (var j = 1; j <= comps[n].numLayers; j++) {
+        var layer = comps[n].layer(j);
+        if (!(layer instanceof TextLayer) || layer.locked) continue;
+        var prop = layer.property("ADBE Text Properties").property("ADBE Text Document");
+        if (prop.numKeys > 0) continue;
+        var doc = prop.value;
+        if (doc.text.indexOf(S.find) === -1) continue;
+        doc.text = doc.text.split(S.find).join(S.replaceWith);
+        prop.setValue(doc);
+        changed++;
+    }
+}
+alert("Updated " + changed + " text layer(s).");`
+},
+{
+  id: "newcomp", cat: "Project", file: "new_comp.py", title: "New comp from a preset",
+  short: "Reel, YouTube, square or 4K",
+  what: "Creates a correctly sized composition for the format you're delivering, names it and opens it, without clicking through the Composition Settings window.",
+  needs: ["After Effects open"],
+  knobs: [
+    { js: "name", py: "NAME", label: "Comp name", type: "text", def: "Main_Comp", help: "How it will appear in the Project panel.", c: "name in the Project panel" },
+    { js: "format", py: "SIZE", label: "Format", type: "select", def: "1920x1080", options: [["1920x1080", "YouTube 1920×1080"], ["1080x1920", "Reel / Story 1080×1920"], ["1080x1080", "Square 1080×1080"], ["3840x2160", "4K 3840×2160"]], help: "Width × height in pixels.", c: "width x height in pixels" },
+    { js: "fps", py: "FPS", label: "Frame rate", type: "select", def: 25, options: [[24, "24"], [25, "25"], [30, "30"], [60, "60"]], help: "Frames per second. Use 25 for Europe/India TV, 30 for most social video.", c: "frames per second" },
+    { js: "seconds", py: "SECONDS", label: "Length", type: "number", def: 10, min: 1, max: 600, step: 1, unit: "seconds", help: "You can always change this later.", c: "duration in seconds" },
+    { js: "background", py: "BACKGROUND", label: "Background color", type: "color", def: "#000000", help: "Only for viewing. Renders with alpha stay transparent.", c: "hex color" }
+  ],
+  happen: v => {
+    const [w, h] = v.format.split("x");
+    return `A new comp named <b>${esc(v.name || "Comp")}</b> appears in your Project panel at <b>${w} × ${h}</b>, <b>${v.fps} fps</b>, <b>${f(v.seconds)} seconds</b> long, with a <b>${v.background.toUpperCase()}</b> background. It opens straight away in the viewer, ready for layers.`;
+  },
+  jsx: String.raw`var size = S.format.split("x");
+var comp = app.project.items.addComp(S.name, parseInt(size[0], 10), parseInt(size[1], 10), 1, S.seconds, S.fps);
+var hex = S.background.replace("#", "");
+comp.bgColor = [parseInt(hex.substr(0, 2), 16) / 255, parseInt(hex.substr(2, 2), 16) / 255, parseInt(hex.substr(4, 2), 16) / 255];
+comp.openInViewer();`
+},
+{
+  id: "version", cat: "Project", file: "save_new_version.py", title: "Save a new version",
+  short: "Promo_v03 → Promo_v04",
+  what: "Saves your project as the next version number next to the current file, so you always have a safe point to go back to. Run it before big changes.",
+  needs: ["A project saved at least once"],
+  knobs: [
+    { js: "separator", py: "SEPARATOR", label: "Character before the v", type: "select", def: "_", options: [["_", "underscore  _"], ["-", "dash  -"], [" ", "space"]], help: "Used when the file has no version number yet.", c: 'used before "v"' },
+    { js: "digits", py: "DIGITS", label: "Version number length", type: "number", def: 2, min: 1, max: 4, step: 1, unit: "digits", help: "2 gives v04, 3 gives v004.", c: "2 = v04, 3 = v004" }
+  ],
+  happen: v => {
+    const a = `Promo${v.separator}v${padN(3, v.digits)}.aep`, b = `Promo${v.separator}v${padN(4, v.digits)}.aep`;
+    return `If your project is called <b>${esc(a)}</b>, After Effects saves it as <b>${esc(b)}</b> in the same folder and you keep working in the new file. A project with no number yet, like <b>Promo.aep</b>, becomes <b>Promo${esc(v.separator)}v${padN(2, v.digits)}.aep</b>. Older versions are never overwritten.`;
+  },
+  jsx: String.raw`var file = app.project.file;
+if (!file) { alert("Save the project once by hand first, so it has a name and a folder."); return; }
+var base = file.displayName.replace(/\.aep$/i, "");
+var m = base.match(/^(.*?)[_\- ]?v(\d+)$/i);
+var stem = m ? m[1] : base;
+var num = m ? parseInt(m[2], 10) + 1 : 2;
+var next;
+do {
+    next = new File(file.parent.fsName + "/" + stem + S.separator + "v" + pad(num, S.digits) + ".aep");
+    num++;
+} while (next.exists);
+app.project.save(next);`
+},
+{
+  id: "tidy", cat: "Project", file: "tidy_project.py", title: "Tidy the Project panel",
+  short: "Sort items into folders by type",
+  what: "Sorts comps, video, images, audio and solids into their own folders, so a messy Project panel becomes easy to read in one click.",
+  needs: ["A project open"],
+  knobs: [
+    { js: "numbered", py: "NUMBER_FOLDERS", label: "Number the folders", type: "toggle", def: true, on: "On: 01 Comps, 02 Video…", off: "Off: Comps, Video…", help: "Numbers keep the folders in a fixed order.", c: "True = 01 Comps, 02 Video..." },
+    { js: "onlyLoose", py: "ONLY_LOOSE_ITEMS", label: "Leave my own folders alone", type: "toggle", def: true, on: "On: only sort loose items", off: "Off: sort everything", help: "When on, items you've already put in a folder stay there.", c: "True = only sort items not in a folder" }
+  ],
+  happen: v => {
+    const n = v.numbered ? ["01 Comps", "02 Video", "03 Images", "04 Audio", "05 Solids"] : ["Comps", "Video", "Images", "Audio", "Solids"];
+    return `Five folders appear at the top of the Project panel: ${n.map(x => `<b>${x}</b>`).join(", ")}. ${v.onlyLoose ? "Every item that isn't already inside a folder" : "Every item in the project, even ones inside your own folders,"} moves into the matching one. Nothing is deleted or renamed, and links to footage stay intact.`;
+  },
+  jsx: String.raw`var root = app.project.rootFolder;
+var names = S.numbered ? ["01 Comps", "02 Video", "03 Images", "04 Audio", "05 Solids"] : ["Comps", "Video", "Images", "Audio", "Solids"];
+var folders = {};
+function getFolder(name) {
+    if (folders[name]) return folders[name];
+    for (var i = 1; i <= app.project.numItems; i++) {
+        var it = app.project.item(i);
+        if (it instanceof FolderItem && it.name === name && it.parentFolder.id === root.id) return (folders[name] = it);
+    }
+    return (folders[name] = app.project.items.addFolder(name));
+}
+var all = [];
+for (var i = 1; i <= app.project.numItems; i++) all.push(app.project.item(i));
+var moved = 0;
+for (var j = 0; j < all.length; j++) {
+    var it = all[j], bucket = -1;
+    if (it instanceof FolderItem) continue;
+    if (S.onlyLoose && it.parentFolder.id !== root.id) continue;
+    if (it instanceof CompItem) bucket = 0;
+    else if (it instanceof FootageItem) {
+        if (it.mainSource instanceof SolidSource) bucket = 4;
+        else if (!it.hasVideo && it.hasAudio) bucket = 3;
+        else if (it.mainSource.isStill) bucket = 2;
+        else bucket = 1;
+    }
+    if (bucket < 0) continue;
+    it.parentFolder = getFolder(names[bucket]);
+    moved++;
+}
+alert("Tidied " + moved + " item(s) into folders.");`
+},
+{
+  id: "render", cat: "Output", file: "add_to_render_queue.py", title: "Send to Render Queue",
+  short: "Queue many comps in one go",
+  what: "Adds the selected comps to the Render Queue with the same output settings and saves them into one folder, named after each comp. Can start rendering straight away.",
+  needs: ["Comps selected in the Project panel (or one comp open)"],
+  knobs: [
+    { js: "outputFolder", py: "SAVE_TO", label: "Save renders to", type: "text", def: "~/Desktop/Renders", help: "~ means your user folder. A full path like C:/Work/Renders also works. The folder is created if it doesn't exist.", c: "folder for the finished files" },
+    { js: "template", py: "OUTPUT_TEMPLATE", label: "Output settings", type: "select", def: "H.264 - Match Render Settings - 15 Mbps", options: [["H.264 - Match Render Settings - 15 Mbps", "H.264 MP4 (small, shareable)"], ["High Quality", "High Quality"], ["High Quality with Alpha", "With transparency"], ["Lossless", "Lossless (big files)"]], help: "These are After Effects' built-in output templates.", c: "an Output Module template name" },
+    { js: "renderNow", py: "RENDER_NOW", label: "Start rendering", type: "toggle", def: false, on: "On: render immediately", off: "Off: just add to the queue", help: "Leave off if you want to check the queue first.", c: "True = start rendering right away" }
+  ],
+  happen: v => {
+    const lab = SNIPPETS.find(s => s.id === "render").knobs[1].options.find(o => o[0] === v.template)[1];
+    return `Each selected comp is added to the Render Queue using <b>${lab}</b>, saving to <b>${esc(v.outputFolder)}</b> with the comp's name as the file name. ${v.renderNow ? "Rendering <b>starts right away</b>, and After Effects is busy until it finishes." : "Nothing renders yet: open the Render Queue, check it, and press Render."}`;
+  },
+  jsx: String.raw`var comps = [];
+var sel = app.project.selection;
+for (var i = 0; i < sel.length; i++) if (sel[i] instanceof CompItem) comps.push(sel[i]);
+if (!comps.length && app.project.activeItem instanceof CompItem) comps.push(app.project.activeItem);
+if (!comps.length) { alert("Select one or more comps in the Project panel, or open one, then run again."); return; }
+var folder = new Folder(S.outputFolder);
+if (!folder.exists) folder.create();
+var missing = false;
+for (var n = 0; n < comps.length; n++) {
+    var item = app.project.renderQueue.items.add(comps[n]);
+    var output = item.outputModule(1);
+    try { output.applyTemplate(S.template); } catch (e) { missing = true; }
+    output.file = new File(folder.fsName + "/" + comps[n].name);
+}
+if (missing) alert('The output template "' + S.template + '" was not found, so the default was used.');
+if (S.renderNow) app.project.renderQueue.render();`
+}
+];
+
+const CATS = ["Animation", "Timing", "Layers", "Text", "Project", "Output"];
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const f = n => String(Math.round(n * 100) / 100);
+const padN = (n, d) => { let s = String(n); while (s.length < d) s = "0" + s; return s; };
+function store(k, v) { try { if (v === undefined) return JSON.parse(localStorage.getItem(k)); localStorage.setItem(k, JSON.stringify(v)); } catch (e) { return null; } }
+
+function hl(line, lang) {
+  const re = lang === "py"
+    ? /(#.*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(\d+(?:\.\d+)?)\b|\b(from|import|def|return|if|else|not|with|as|True|False|None)\b/g
+    : /(\/\/.*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(\d+(?:\.\d+)?)\b|\b(var|function|return|if|else|for|do|while|new|try|catch|continue|instanceof|true|false|null)\b/g;
+  let out = "", last = 0, m;
+  while ((m = re.exec(line))) {
+    out += esc(line.slice(last, m.index));
+    const cls = m[1] ? "c" : m[2] ? "s" : m[3] ? "n" : "k";
+    out += `<span class="t-${cls}">${esc(m[0])}</span>`;
+    last = re.lastIndex;
+  }
+  return out + esc(line.slice(last));
+}
+function renderLines(lines) {
+  return lines.map(l => {
+    if (l.kind === "set") return `<span class="ln set${l.on ? " on" : ""}">${l.html}</span>`;
+    if (l.kind === "raw") return `<span class="ln">${esc(l.t)}</span>`;
+    return `<span class="ln">${hl(l.t, l.kind) || " "}</span>`;
+  }).join("");
+}
+const pyVal = (k, v) => k.type === "toggle" ? (v ? "True" : "False") : typeof v === "number" ? String(v) : JSON.stringify(v);
+const jsVal = (k, v) => JSON.stringify(v);
+
+function settingLines(sn, v, fmt, nameOf) {
+  const rows = sn.knobs.map(k => ({ k, name: nameOf(k), val: fmt(k, v[k.js]) }));
+  const wn = Math.max(...rows.map(r => r.name.length)), wv = Math.max(...rows.map(r => r.val.length));
+  return rows.map(r => {
+    const on = v[r.k.js] !== r.k.def;
+    const cm = fmt === pyVal ? "# " : "// ";
+    const sep = fmt === pyVal ? " = " : ": ";
+    const tail = fmt === pyVal ? "" : ",";
+    const t = `${fmt === pyVal ? "" : "    "}${r.name.padEnd(wn)}${sep}${r.val}${tail}${" ".repeat(wv - r.val.length)}   ${cm}${r.k.c}`;
+    const html = `${fmt === pyVal ? "" : "    "}${esc(r.name.padEnd(wn))}${sep}<span class="t-v">${esc(r.val)}</span>${tail}${" ".repeat(wv - r.val.length)}   <span class="t-c">${esc(cm + r.k.c)}</span>`;
+    return { kind: "set", t, html, on };
+  });
+}
+
+function buildPython(sn, v) {
+  const L = [];
+  const py = t => L.push({ kind: "py", t });
+  py(`# ${sn.file}  ·  ${sn.title}`);
+  py(`# Before running: ${sn.needs.join(", ").toLowerCase()}.`);
+  py("from ae_bridge import run_in_ae");
+  py("");
+  py("# ---- Change these ------------------------------------------");
+  L.push(...settingLines(sn, v, pyVal, k => k.py));
+  py("# ------------------------------------------------------------");
+  py("");
+  L.push({ kind: "raw", t: 'run_in_ae(r"""' });
+  sn.jsx.split("\n").forEach(t => L.push({ kind: "js", t }));
+  L.push({ kind: "raw", t: '""",' });
+  sn.knobs.forEach(k => L.push({ kind: "py", t: `    ${k.js}=${k.py},` }));
+  L.push({ kind: "raw", t: ")" });
+  return L;
+}
+function buildJsx(sn, v) {
+  const L = [];
+  const js = t => L.push({ kind: "js", t });
+  js(`// ${sn.file.replace(".py", ".jsx")}  ·  ${sn.title}`);
+  js("// No Python needed: in After Effects choose File > Scripts > Run Script File... and pick this file.");
+  js(`// Before running: ${sn.needs.join(", ").toLowerCase()}.`);
+  js("");
+  js("// ---- Change these ------------------------------------------");
+  js("var S = {");
+  const sets = settingLines(sn, v, jsVal, k => k.js);
+  const last = sets[sets.length - 1];
+  last.t = last.t.replace(/,(\s*\/\/)/, " $1"); last.html = last.html.replace(/<\/span>,(\s*<span class="t-c">)/, "</span> $1");
+  L.push(...sets);
+  js("};");
+  js("// ------------------------------------------------------------");
+  js("");
+  js('app.beginUndoGroup("Keyframe Kit");');
+  PRELUDE.split("\n").forEach(js);
+  js("try {");
+  js("(function () {");
+  sn.jsx.split("\n").forEach(js);
+  js("})();");
+  js("} catch (e) {");
+  js('    alert("The snippet stopped: " + e.toString());');
+  js("}");
+  js("app.endUndoGroup();");
+  return L;
+}
+
+/* ---------- state ---------- */
+let current = SNIPPETS[0].id, tab = store("kk:tab") || "py";
+const vals = {};
+SNIPPETS.forEach(sn => {
+  const saved = store("kk:" + sn.id) || {};
+  vals[sn.id] = {};
+  sn.knobs.forEach(k => { vals[sn.id][k.js] = (k.js in saved) ? saved[k.js] : k.def; });
+});
+const h = (location.hash || "").slice(1);
+if (SNIPPETS.some(s => s.id === h)) current = h; else if (store("kk:last") && SNIPPETS.some(s => s.id === store("kk:last"))) current = store("kk:last");
+
+/* ---------- list ---------- */
+function renderList() {
+  const q = $("#q").value.trim().toLowerCase();
+  const html = CATS.map(cat => {
+    const items = SNIPPETS.filter(s => s.cat === cat && (!q || (s.title + s.short + s.what + s.cat + s.file).toLowerCase().includes(q)));
+    if (!items.length) return "";
+    return `<div class="group"><span class="eyebrow">${cat}</span>${items.map(s => {
+      const changed = s.knobs.some(k => vals[s.id][k.js] !== k.def);
+      return `<button class="item" type="button" data-id="${s.id}" aria-current="${s.id === current}"><span class="item-t">${s.title}${changed ? '<i class="mini" title="You changed settings here"></i>' : ""}</span><span class="item-d">${s.short}</span></button>`;
+    }).join("")}</div>`;
+  }).join("");
+  $("#list").innerHTML = html || `<p class="empty">No snippet matches “${esc(q)}”. Try “fade”, “text” or “render”.</p>`;
+}
+$("#list").addEventListener("click", e => {
+  const b = e.target.closest(".item"); if (!b) return;
+  current = b.dataset.id; store("kk:last", current);
+  try { history.replaceState(null, "", "#" + current); } catch (err) {}
+  renderList(); renderDetail();
+  if (window.innerWidth < 900) $("#detail").scrollIntoView({ behavior: "smooth", block: "start" });
+});
+$("#q").addEventListener("input", renderList);
+
+/* ---------- detail ---------- */
+function knobHTML(k, v) {
+  const id = `k-${k.js}`;
+  let ctl = "";
+  if (k.type === "number") ctl = `<div class="num"><input type="range" id="${id}-r" min="${k.min}" max="${k.max}" step="${k.step}" value="${v}" aria-label="${esc(k.label)}"><input type="number" id="${id}" min="${k.min}" max="${k.max}" step="${k.step}" value="${v}"><span class="unit" data-unit>${k.unit}</span></div>`;
+  else if (k.type === "text") ctl = `<input type="text" id="${id}" value="${esc(v)}" spellcheck="false" autocomplete="off">`;
+  else if (k.type === "select") ctl = `<div class="seg" role="radiogroup" id="${id}" aria-label="${esc(k.label)}">${k.options.map((o, i) => `<button type="button" role="radio" aria-checked="${o[0] === v}" data-i="${i}">${esc(o[1])}</button>`).join("")}</div>`;
+  else if (k.type === "toggle") ctl = `<div class="sw"><button type="button" class="switch" id="${id}" role="switch" aria-checked="${!!v}" aria-label="${esc(k.label)}"><span></span></button><span class="sw-lab">${v ? k.on : k.off}</span></div>`;
+  else if (k.type === "color") ctl = `<div class="color"><input type="color" id="${id}" value="${v}"><code data-hex>${String(v).toUpperCase()}</code></div>`;
+  const def = k.type === "select" ? k.options.find(o => o[0] === k.def)[1] : k.type === "toggle" ? (k.def ? "on" : "off") : (k.def === "" ? "empty" : `${k.def}${k.unit ? " " + k.unit : ""}`);
+  return `<div class="knob${v !== k.def ? " is-changed" : ""}" data-k="${k.js}"><div class="knob-top"><label for="${id}">${k.label}</label><span class="was">changed · default was ${esc(def)}</span></div>${ctl}<p class="help">${k.help}</p></div>`;
+}
+
+function renderDetail() {
+  const sn = SNIPPETS.find(s => s.id === current);
+  const v = vals[sn.id];
+  $("#detail").innerHTML = `
+    <div class="d-head">
+      <div class="chips"><span class="chip">${sn.cat}</span><span class="chip file">${sn.file}</span></div>
+      <h3>${sn.title}</h3>
+      <p class="what">${sn.what}</p>
+    </div>
+    <div class="d-body">
+      <div class="knobs">
+        <div class="knobs-head"><h4>Change these</h4><button class="btn small" type="button" id="reset">Reset to defaults</button></div>
+        ${sn.knobs.map(k => knobHTML(k, v[k.js])).join("")}
+      </div>
+      <div class="outcome">
+        <h4>What will happen</h4>
+        <p class="happen" id="happen"></p>
+        <p class="changed-sum" id="changed-sum"></p>
+        <ul class="facts">
+          <li><span class="lab">You need</span><span>${sn.needs.join(" · ")}</span></li>
+          <li><span class="lab">Undo</span><span>${sn.id === "version" ? "Not needed: your old file is untouched, the new version is a separate file." : "One <kbd>Ctrl</kbd>+<kbd>Z</kbd> (Mac <kbd>Cmd</kbd>+<kbd>Z</kbd>) reverses everything this snippet did."}</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="codebox">
+      <div class="code-bar">
+        <div class="tabs" role="tablist">
+          <button type="button" role="tab" data-tab="py" aria-selected="${tab === "py"}">Python file</button>
+          <button type="button" role="tab" data-tab="jsx" aria-selected="${tab === "jsx"}">Plain .jsx (no Python)</button>
+        </div>
+        <button class="btn primary" type="button" id="copy-code">Copy code</button>
+      </div>
+      <p class="run-line" id="run-line"></p>
+      <pre class="code" id="code"></pre>
+    </div>`;
+  bindKnobs(sn);
+  refresh(sn);
+}
+
+function refresh(sn) {
+  const v = vals[sn.id];
+  $("#happen").innerHTML = sn.happen(v);
+  const n = sn.knobs.filter(k => v[k.js] !== k.def).length;
+  $("#changed-sum").innerHTML = n ? `<i class="mini"></i>You changed ${n} setting${n > 1 ? "s" : ""}. They're highlighted in the code below.` : "Using the default settings.";
+  sn.knobs.forEach(k => {
+    const el = document.querySelector(`.knob[data-k="${k.js}"]`);
+    el.classList.toggle("is-changed", v[k.js] !== k.def);
+    if (k.unitFn) el.querySelector("[data-unit]").textContent = k.unitFn(v);
+  });
+  const lines = tab === "py" ? buildPython(sn, v) : buildJsx(sn, v);
+  $("#code").innerHTML = renderLines(lines);
+  $("#code").dataset.text = lines.map(l => l.t).join("\n") + "\n";
+  const jsxName = sn.file.replace(".py", ".jsx");
+  $("#run-line").innerHTML = tab === "py"
+    ? `Save as <code>${sn.file}</code> next to <code>ae_bridge.py</code>, then run <code>python ${sn.file}</code> (Mac: <code>python3 ${sn.file}</code>).`
+    : `Save as <code>${jsxName}</code> anywhere, then in After Effects choose <em>File › Scripts › Run Script File…</em> and pick it.`;
+  store("kk:" + sn.id, v);
+  renderList();
+}
+
+function bindKnobs(sn) {
+  const v = vals[sn.id];
+  sn.knobs.forEach(k => {
+    const id = `k-${k.js}`;
+    const set = val => { v[k.js] = val; refresh(sn); };
+    if (k.type === "number") {
+      const r = document.getElementById(id + "-r"), n = document.getElementById(id);
+      r.addEventListener("input", () => { n.value = r.value; set(Number(r.value)); });
+      n.addEventListener("input", () => {
+        const x = Number(n.value);
+        if (n.value === "" || isNaN(x)) return;
+        r.value = x; set(x);
+      });
+      n.addEventListener("change", () => {
+        let x = Number(n.value);
+        if (n.value === "" || isNaN(x)) x = k.def;
+        x = Math.min(k.max, Math.max(k.min, x));
+        n.value = x; r.value = x; set(x);
+      });
+    } else if (k.type === "text") {
+      document.getElementById(id).addEventListener("input", e => set(e.target.value));
+    } else if (k.type === "select") {
+      const g = document.getElementById(id);
+      g.addEventListener("click", e => {
+        const b = e.target.closest("button"); if (!b) return;
+        g.querySelectorAll("button").forEach(x => x.setAttribute("aria-checked", x === b));
+        set(k.options[+b.dataset.i][0]);
+      });
+    } else if (k.type === "toggle") {
+      const b = document.getElementById(id);
+      b.addEventListener("click", () => {
+        const on = b.getAttribute("aria-checked") !== "true";
+        b.setAttribute("aria-checked", on);
+        b.nextElementSibling.textContent = on ? k.on : k.off;
+        set(on);
+      });
+    } else if (k.type === "color") {
+      const c = document.getElementById(id);
+      c.addEventListener("input", () => { c.nextElementSibling.textContent = c.value.toUpperCase(); set(c.value.toLowerCase() === k.def ? k.def : c.value.toLowerCase()); });
+    }
+  });
+  $("#reset").addEventListener("click", () => {
+    sn.knobs.forEach(k => { v[k.js] = k.def; });
+    renderDetail(); toast("Settings reset to defaults");
+  });
+  document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => {
+    tab = b.dataset.tab; store("kk:tab", tab);
+    document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b));
+    refresh(sn);
+  }));
+  $("#copy-code").addEventListener("click", () => {
+    const name = tab === "py" ? sn.file : sn.file.replace(".py", ".jsx");
+    copy($("#code").dataset.text, $("#code"), `Copied. Save it as ${name}`);
+  });
+}
+
+/* ---------- copy + toast ---------- */
+let tt;
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("show"), 2400); }
+function copy(text, el, msg) {
+  const fallback = () => {
+    const r = document.createRange(); r.selectNodeContents(el);
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    toast("Selected. Press Ctrl+C (Mac: Cmd+C) to copy");
+  };
+  try {
+    navigator.clipboard.writeText(text).then(() => toast(msg), fallback);
+  } catch (e) { fallback(); }
+}
+
+$("#helper-code").innerHTML = renderLines(HELPER.split("\n").map(t => ({ kind: "py", t })));
+$("#copy-helper").addEventListener("click", () => {
+  const d = document.querySelector("details.helper");
+  copy(HELPER, $("#helper-code"), "Copied. Save it as ae_bridge.py");
+  if (!d.open) d.open = true;
+});
+
+renderList();
+renderDetail();
+</script>
+</body>
+</html>
